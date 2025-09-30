@@ -1,12 +1,25 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
+	"github.com/BirtasevicLazar/BarberBook/backend/internal/config"
+	mydb "github.com/BirtasevicLazar/BarberBook/backend/internal/db"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	// Load config from env/.env
+	cfg := config.Load()
+
+	// Connect to database
+	pool, err := mydb.Connect(cfg.DB)
+	if err != nil {
+		log.Fatalf("failed to connect to database: %v", err)
+	}
+	defer pool.Close()
+
 	r := gin.Default()
 
 	// Health check
@@ -21,6 +34,6 @@ func main() {
 
 	// Run server on :8080 (default)
 	if err := r.Run(":8080"); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }
