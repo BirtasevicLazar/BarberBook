@@ -17,7 +17,8 @@ type DBConfig struct {
 }
 
 type Config struct {
-	DB DBConfig
+	DB        DBConfig
+	JWTSecret string
 }
 
 func Load() Config {
@@ -32,6 +33,7 @@ func Load() Config {
 			Name:     getEnv("DB_NAME", ""),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
+		JWTSecret: getEnv("JWT_SECRET", "dev-secret-change"),
 	}
 
 	if cfg.DB.Host == "" || cfg.DB.User == "" || cfg.DB.Name == "" {

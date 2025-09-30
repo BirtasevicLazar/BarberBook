@@ -2,11 +2,10 @@ package main
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/BirtasevicLazar/BarberBook/backend/internal/config"
 	mydb "github.com/BirtasevicLazar/BarberBook/backend/internal/db"
-	"github.com/gin-gonic/gin"
+	"github.com/BirtasevicLazar/BarberBook/backend/internal/router"
 )
 
 func main() {
@@ -20,17 +19,7 @@ func main() {
 	}
 	defer pool.Close()
 
-	r := gin.Default()
-
-	// Health check
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
-
-	// Simple ping
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "pong"})
-	})
+	r := router.New(pool, cfg)
 
 	// Run server on :8080 (default)
 	if err := r.Run(":8080"); err != nil {
