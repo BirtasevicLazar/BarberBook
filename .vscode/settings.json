@@ -1,0 +1,20 @@
+{
+    "dbcode.connections": [
+        {
+            "connectionId": "FBD1K1LZiIDEE7kTorrRM",
+            "name": "barberbook_db",
+            "driver": "postgres",
+            "color": "#FF5116",
+            "connectionType": "host",
+            "host": "localhost",
+            "port": 5432,
+            "ssl": false,
+            "username": "lazarbirtasevic",
+            "password": "",
+            "savePassword": "secretStorage",
+            "database": "barberbook_db",
+            "readOnly": false,
+            "connectionTimeout": 30
+        }
+    ]
+}
