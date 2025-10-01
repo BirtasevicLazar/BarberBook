@@ -26,17 +26,17 @@ type loginRequest struct {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		BadRequest(c, "invalid_body", err.Error())
 		return
 	}
 	userID, role, err := h.svc.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		Unauthorized(c, "invalid_credentials", "invalid credentials")
 		return
 	}
 	tok, err := h.jwtAu.GenerateToken(userID, role)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to issue token"})
+		ServerError(c, "token_issue_failed", "failed to issue token")
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"access_token": tok, "token_type": "Bearer"})

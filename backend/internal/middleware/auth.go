@@ -56,3 +56,29 @@ func (a *JWTAuthenticator) Middleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// RequireRole ensures the authenticated user has one of the allowed roles.
+func (a *JWTAuthenticator) RequireRole(allowed ...string) gin.HandlerFunc {
+	allowedSet := map[string]struct{}{}
+	for _, r := range allowed {
+		allowedSet[r] = struct{}{}
+	}
+	return func(c *gin.Context) {
+		// Must already be authenticated by Middleware()
+		roleVal, ok := c.Get("role")
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing role"})
+			return
+		}
+		roleStr, ok := roleVal.(string)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid role"})
+			return
+		}
+		if _, ok := allowedSet[roleStr]; !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "forbidden"})
+			return
+		}
+		c.Next()
+	}
+}

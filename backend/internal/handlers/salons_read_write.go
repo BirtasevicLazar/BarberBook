@@ -21,15 +21,50 @@ func NewSalonsReadWriteHandler(repo *repositories.SalonsRepository) *SalonsReadW
 func (h *SalonsReadWriteHandler) GetSalon(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("salon_id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid salon_id"})
+		BadRequest(c, "invalid_salon_id", "invalid salon_id")
 		return
 	}
 	s, err := h.repo.GetByID(c.Request.Context(), id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		NotFound(c, "salon_not_found", "salon not found")
+		return
+	}
+	// Enforce owner (private route): token subject must match owner_id
+	if uid, ok := c.Get("user_id"); ok {
+		if uidStr, ok := uid.(string); ok {
+			if s.OwnerID.String() != uidStr {
+				Unauthorized(c, "forbidden", "you are not allowed to access this resource")
+				return
+			}
+		}
+	} else {
+		Unauthorized(c, "missing_token", "authorization required")
 		return
 	}
 	c.JSON(http.StatusOK, s)
+}
+
+// PublicGetSalon returns a limited, public view of a salon (no sensitive fields)
+func (h *SalonsReadWriteHandler) PublicGetSalon(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("salon_id"))
+	if err != nil {
+		BadRequest(c, "invalid_salon_id", "invalid salon_id")
+		return
+	}
+	s, err := h.repo.GetByID(c.Request.Context(), id)
+	if err != nil {
+		NotFound(c, "salon_not_found", "salon not found")
+		return
+	}
+	// public payload (exclude owner_id)
+	c.JSON(http.StatusOK, gin.H{
+		"id":       s.ID,
+		"name":     s.Name,
+		"phone":    s.Phone,
+		"address":  s.Address,
+		"timezone": s.Timezone,
+		"currency": s.Currency,
+	})
 }
 
 type updateSalonRequest struct {
@@ -43,19 +78,37 @@ type updateSalonRequest struct {
 func (h *SalonsReadWriteHandler) UpdateSalon(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("salon_id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid salon_id"})
+		BadRequest(c, "invalid_salon_id", "invalid salon_id")
 		return
 	}
 	var req updateSalonRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		BadRequest(c, "invalid_body", err.Error())
 		return
 	}
 	// Optional: enforce owner can update only own salon (compare token subject to salon.owner_id)
+	// Load to verify ownership
+	current, err := h.repo.GetByID(c.Request.Context(), id)
+	if err != nil {
+		NotFound(c, "salon_not_found", "salon not found")
+		return
+	}
+	if uid, ok := c.Get("user_id"); ok {
+		if uidStr, ok := uid.(string); ok {
+			if current.OwnerID.String() != uidStr {
+				Unauthorized(c, "forbidden", "you are not allowed to update this salon")
+				return
+			}
+		}
+	} else {
+		Unauthorized(c, "missing_token", "authorization required")
+		return
+	}
+
 	s := models.Salon{ID: id, Name: req.Name, Phone: req.Phone, Address: req.Address, Timezone: req.Timezone, Currency: req.Currency}
 	out, err := h.repo.Update(c.Request.Context(), s)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ServerError(c, "update_failed", err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, out)

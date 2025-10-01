@@ -1,0 +1,171 @@
+package handlers
+
+import (
+	"net/http"
+	"time"
+
+	"github.com/BirtasevicLazar/BarberBook/backend/internal/services"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+)
+
+type AppointmentsHandler struct {
+	svc        *services.AppointmentsService
+	barbersSvc *services.BarbersService
+}
+
+func NewAppointmentsHandler(svc *services.AppointmentsService, barbersSvc *services.BarbersService) *AppointmentsHandler {
+	return &AppointmentsHandler{svc: svc, barbersSvc: barbersSvc}
+}
+
+// PublicCreate allows customers to create an appointment; only booking allowed.
+type publicCreateBody struct {
+	SalonID         string    `json:"salon_id" binding:"required"`
+	BarberID        string    `json:"barber_id" binding:"required"`
+	BarberServiceID string    `json:"barber_service_id" binding:"required"`
+	CustomerName    string    `json:"customer_name" binding:"required"`
+	CustomerPhone   *string   `json:"customer_phone"`
+	StartAt         time.Time `json:"start_at" binding:"required"`
+	Notes           *string   `json:"notes"`
+}
+
+func (h *AppointmentsHandler) PublicCreate(c *gin.Context) {
+	var body publicCreateBody
+	if err := c.ShouldBindJSON(&body); err != nil {
+		BadRequest(c, "invalid_body", err.Error())
+		return
+	}
+	salonID, err := uuid.Parse(body.SalonID)
+	if err != nil {
+		BadRequest(c, "invalid_salon_id", "invalid salon_id")
+		return
+	}
+	barberID, err := uuid.Parse(body.BarberID)
+	if err != nil {
+		BadRequest(c, "invalid_barber_id", "invalid barber_id")
+		return
+	}
+	serviceID, err := uuid.Parse(body.BarberServiceID)
+	if err != nil {
+		BadRequest(c, "invalid_service_id", "invalid barber_service_id")
+		return
+	}
+	appt, err := h.svc.PublicCreate(c.Request.Context(), services.PublicCreateAppointmentInput{
+		SalonID:         salonID,
+		BarberID:        barberID,
+		BarberServiceID: serviceID,
+		CustomerName:    body.CustomerName,
+		CustomerPhone:   body.CustomerPhone,
+		StartAt:         body.StartAt,
+		Notes:           body.Notes,
+	})
+	if err != nil {
+		if pgErr, ok := err.(*pgconn.PgError); ok {
+			// Map relevant integrity errors to 400
+			BadRequest(c, "booking_failed", pgErr.Message)
+			return
+		}
+		ServerError(c, "booking_failed", err.Error())
+		return
+	}
+	c.JSON(http.StatusCreated, appt)
+}
+
+// Barber-only: list appointments
+func (h *AppointmentsHandler) ListForBarber(c *gin.Context) {
+	uidVal, ok := c.Get("user_id")
+	if !ok {
+		Unauthorized(c, "missing_token", "authorization required")
+		return
+	}
+	uidStr, ok := uidVal.(string)
+	if !ok {
+		Unauthorized(c, "invalid_token", "invalid token")
+		return
+	}
+	userID, err := uuid.Parse(uidStr)
+	if err != nil {
+		Unauthorized(c, "invalid_token", "invalid token")
+		return
+	}
+	b, err := h.barbersSvc.GetBarberByUser(c.Request.Context(), userID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			NotFound(c, "barber_not_found", "barber profile not found")
+			return
+		}
+		ServerError(c, "barber_lookup_failed", err.Error())
+		return
+	}
+
+	var fromPtr, toPtr *time.Time
+	var statusPtr *string
+	if v := c.Query("from"); v != "" {
+		t, e := time.Parse(time.RFC3339, v)
+		if e == nil {
+			fromPtr = &t
+		}
+	}
+	if v := c.Query("to"); v != "" {
+		t, e := time.Parse(time.RFC3339, v)
+		if e == nil {
+			toPtr = &t
+		}
+	}
+	if v := c.Query("status"); v != "" {
+		statusPtr = &v
+	}
+
+	items, err := h.svc.ListForBarber(c.Request.Context(), services.ListBarberAppointmentsInput{BarberID: b.ID, From: fromPtr, To: toPtr, Status: statusPtr})
+	if err != nil {
+		ServerError(c, "list_failed", err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, items)
+}
+
+// Barber-only: cancel appointment
+func (h *AppointmentsHandler) CancelByBarber(c *gin.Context) {
+	uidVal, ok := c.Get("user_id")
+	if !ok {
+		Unauthorized(c, "missing_token", "authorization required")
+		return
+	}
+	uidStr, ok := uidVal.(string)
+	if !ok {
+		Unauthorized(c, "invalid_token", "invalid token")
+		return
+	}
+	userID, err := uuid.Parse(uidStr)
+	if err != nil {
+		Unauthorized(c, "invalid_token", "invalid token")
+		return
+	}
+	b, err := h.barbersSvc.GetBarberByUser(c.Request.Context(), userID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			NotFound(c, "barber_not_found", "barber profile not found")
+			return
+		}
+		ServerError(c, "barber_lookup_failed", err.Error())
+		return
+	}
+
+	apptID, err := uuid.Parse(c.Param("appointment_id"))
+	if err != nil {
+		BadRequest(c, "invalid_appointment_id", "invalid appointment_id")
+		return
+	}
+	a, err := h.svc.CancelByBarber(c.Request.Context(), b.ID, apptID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			NotFound(c, "appointment_not_found", "appointment not found or already canceled")
+			return
+		}
+		ServerError(c, "cancel_failed", err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, a)
+}
