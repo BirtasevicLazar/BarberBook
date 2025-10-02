@@ -26,7 +26,7 @@ export default function Navbar() {
               to="/register-salon" 
               className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
-              Za salone
+              Registruj salon
             </Link>
             <Link 
               to="/owner/login" 
