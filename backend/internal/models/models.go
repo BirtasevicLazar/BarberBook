@@ -45,6 +45,7 @@ type BarberService struct {
 	DurationMin int       `json:"duration_min"`
 	Active      bool      `json:"active"`
 	CreatedAt   time.Time `json:"created_at"`
+	Currency    string    `json:"currency,omitempty"`
 }
 
 type BarberWorkingHour struct {

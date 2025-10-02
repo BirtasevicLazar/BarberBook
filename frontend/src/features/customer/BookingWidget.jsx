@@ -29,6 +29,22 @@ function formatTime(iso) {
   }
 }
 
+function formatPrice(price, currency) {
+  const numeric = typeof price === 'number' ? price : Number(price);
+  if (!Number.isFinite(numeric)) {
+    return '';
+  }
+  const code = (currency || '').toUpperCase();
+  if (!code) {
+    return new Intl.NumberFormat('sr-RS', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(numeric);
+  }
+  try {
+    return new Intl.NumberFormat('sr-RS', { style: 'currency', currency: code, minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(numeric);
+  } catch {
+    return `${numeric} ${code}`.trim();
+  }
+}
+
 export default function BookingWidget({ salonId }) {
   const [barbers, setBarbers] = useState([]);
   const [services, setServices] = useState([]);
@@ -339,7 +355,7 @@ export default function BookingWidget({ salonId }) {
                         >
                           <div className="flex items-center justify-between text-sm font-medium">
                             <span>{s.name}</span>
-                            <span>{s.price} {s.currency}</span>
+                            <span>{formatPrice(s.price, s.currency)}</span>
                           </div>
                           <p className={`mt-1 text-xs ${isActive ? 'text-white/70' : 'text-zinc-500'}`}>
                             Trajanje {s.duration_min} min
@@ -433,7 +449,7 @@ export default function BookingWidget({ salonId }) {
                       <div className="flex justify-between text-xs text-zinc-500">
                         <span>Cena i trajanje</span>
                         <span>
-                          {selectedServiceData.price} {selectedServiceData.currency} • {selectedServiceData.duration_min} min
+                          {formatPrice(selectedServiceData.price, selectedServiceData.currency)} • {selectedServiceData.duration_min} min
                         </span>
                       </div>
                     )}

@@ -43,7 +43,13 @@ func (s *BarberServicesService) List(ctx context.Context, barberID uuid.UUID) ([
 
 // ListActive returns only active services for a barber (public view).
 func (s *BarberServicesService) ListActive(ctx context.Context, barberID uuid.UUID) ([]models.BarberService, error) {
-	rows, err := s.db.Query(ctx, `SELECT id, barber_id, name, price, duration_min, active, created_at FROM barber_services WHERE barber_id=$1 AND active=true ORDER BY name`, barberID)
+	rows, err := s.db.Query(ctx, `
+		SELECT bs.id, bs.barber_id, bs.name, bs.price, bs.duration_min, bs.active, bs.created_at, sa.currency
+		FROM barber_services bs
+		JOIN barbers b ON b.id = bs.barber_id
+		JOIN salons sa ON sa.id = b.salon_id
+		WHERE bs.barber_id=$1 AND bs.active=true
+		ORDER BY bs.name`, barberID)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +57,7 @@ func (s *BarberServicesService) ListActive(ctx context.Context, barberID uuid.UU
 	var out []models.BarberService
 	for rows.Next() {
 		var bs models.BarberService
-		if err := rows.Scan(&bs.ID, &bs.BarberID, &bs.Name, &bs.Price, &bs.DurationMin, &bs.Active, &bs.CreatedAt); err != nil {
+		if err := rows.Scan(&bs.ID, &bs.BarberID, &bs.Name, &bs.Price, &bs.DurationMin, &bs.Active, &bs.CreatedAt, &bs.Currency); err != nil {
 			return nil, err
 		}
 		out = append(out, bs)
