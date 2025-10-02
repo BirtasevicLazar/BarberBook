@@ -1,5 +1,7 @@
 import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import { useScrollToTop } from '../hooks/useScrollToTop.js';
+import PublicRoute from '../components/PublicRoute.jsx';
+import ProtectedRoute from '../components/ProtectedRoute.jsx';
 import HomePage from '../pages/HomePage.jsx';
 import SalonPublicPage from '../pages/SalonPublicPage.jsx';
 import RegisterSalonPage from '../pages/RegisterSalonPage.jsx';
@@ -17,9 +19,30 @@ const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <HomePage /> },
-      { path: 'register-salon', element: <RegisterSalonPage /> },
-      { path: 'owner/login', element: <OwnerLoginPage /> },
-      { path: 'owner/dashboard', element: <OwnerDashboardPage /> },
+      { 
+        path: 'register-salon', 
+        element: (
+          <PublicRoute>
+            <RegisterSalonPage />
+          </PublicRoute>
+        )
+      },
+      { 
+        path: 'owner/login', 
+        element: (
+          <PublicRoute>
+            <OwnerLoginPage />
+          </PublicRoute>
+        )
+      },
+      { 
+        path: 'owner/dashboard', 
+        element: (
+          <ProtectedRoute>
+            <OwnerDashboardPage />
+          </ProtectedRoute>
+        )
+      },
       { path: 's/:salonId', element: <SalonPublicPage /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],

@@ -37,8 +37,14 @@ export async function api(path, { method = 'GET', headers = {}, body, token } = 
 
 export function setToken(token) {
   localStorage.setItem('auth_token', token);
+  window.dispatchEvent(new CustomEvent('authStateChanged'));
 }
 
 export function getToken() {
   return localStorage.getItem('auth_token');
+}
+
+export function removeToken() {
+  localStorage.removeItem('auth_token');
+  window.dispatchEvent(new CustomEvent('authStateChanged'));
 }
