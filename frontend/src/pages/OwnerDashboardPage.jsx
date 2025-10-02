@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api, getToken } from '../lib/api.js';
 import BarbersSection from '../features/owner/BarbersSection.jsx';
 import SalonDetailsSection from '../features/owner/SalonDetailsSection.jsx';
 import Layout from '../components/layout/Layout.jsx';
-import Container from '../components/layout/Container.jsx';
+import Button from '../components/ui/Button.jsx';
 
 export default function OwnerDashboardPage() {
   const [salon, setSalon] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [barberCount, setBarberCount] = useState(0);
 
   useEffect(() => {
     const token = getToken();
@@ -33,13 +34,43 @@ export default function OwnerDashboardPage() {
     return () => { mounted = false; };
   }, []);
 
+  const highlightCards = useMemo(() => {
+    const teamLabel = (() => {
+      if (!barberCount) return 'Nema frizera';
+      if (barberCount === 1) return '1 frizer';
+      if (barberCount === 2 || barberCount === 3 || barberCount === 4) return `${barberCount} frizera`;
+      return `${barberCount} frizera`;
+    })();
+
+    return [
+      {
+        label: 'Adresa',
+        value: salon?.address || 'Nije uneto',
+        helper: 'Lokacija vašeg salona',
+        icon: '📍',
+      },
+      {
+        label: 'Kontakt',
+        value: salon?.phone || 'Nije unet',
+        helper: 'Telefon za klijente',
+        icon: '☎️',
+      },
+      {
+        label: 'Tim',
+        value: teamLabel,
+        helper: 'Aktivni frizeri u sistemu',
+        icon: '💈',
+      },
+    ];
+  }, [salon?.address, salon?.phone, barberCount]);
+
   if (loading) {
     return (
       <Layout>
-        <div className="min-h-screen bg-white flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-12 h-12 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-sm text-gray-600 font-light">Učitavanje dashboard-a...</p>
+  <div className="min-h-screen bg-white flex items-center justify-center px-6">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="w-12 h-12 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
+            <p className="text-sm text-zinc-500">Učitavanje kontrolne table…</p>
           </div>
         </div>
       </Layout>
@@ -49,28 +80,22 @@ export default function OwnerDashboardPage() {
   if (error) {
     return (
       <Layout>
-        <div className="min-h-screen bg-white flex items-center justify-center px-4">
-          <div className="text-center max-w-md">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-              </svg>
+  <div className="min-h-screen bg-white flex items-center justify-center px-6">
+          <div className="max-w-sm space-y-6 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-600">
+              !
             </div>
-            <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">Potrebna je prijava</h2>
-            <p className="text-sm text-gray-600 mb-8 font-light">{error}</p>
-            <div className="space-y-3">
-              <a 
-                className="block px-8 py-3 text-base font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition-all duration-300"
-                href="/owner/login"
-              >
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-zinc-900">Potrebna je prijava</h2>
+              <p className="text-sm text-zinc-500">{error}</p>
+            </div>
+            <div className="grid gap-3">
+              <Button as="a" href="/owner/login" className="w-full">
                 Prijavite se
-              </a>
-              <a 
-                className="block px-8 py-3 text-base font-medium text-gray-600 bg-transparent border border-gray-300 rounded-full hover:border-gray-900 hover:text-gray-900 transition-all duration-300"
-                href="/register-salon"
-              >
+              </Button>
+              <Button as="a" href="/register-salon" variant="secondary" className="w-full">
                 Registrujte salon
-              </a>
+              </Button>
             </div>
           </div>
         </div>
@@ -81,67 +106,75 @@ export default function OwnerDashboardPage() {
   return (
     <Layout>
       <div className="min-h-screen bg-white">
-        <Container>
-          <div className="py-6 sm:py-8 lg:py-12">
-            
-            {/* Dashboard Header */}
-            <div className="mb-8 sm:mb-12">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 mb-6">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 mb-2 tracking-tight">
-                    Dashboard
-                  </h1>
-                  <p className="text-sm sm:text-base text-gray-600 font-light">
-                    {salon?.name}
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <a 
-                    href={`/s/${salon.id}`} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium text-gray-600 bg-transparent border border-gray-300 rounded-full hover:border-gray-900 hover:text-gray-900 transition-all duration-300 text-center"
-                  >
-                    Pogledaj salon
-                  </a>
-                </div>
-              </div>
-              
-            </div>
-
-            {/* Main Content */}
-            <div className="space-y-8 lg:space-y-12">
-                
-                {/* Salon Details Section */}
-                <div>
-                  <div className="mb-6 lg:mb-8">
-                    <h2 className="text-xl sm:text-2xl font-light text-gray-900 mb-2 tracking-tight">
-                      Podaci o salonu
-                    </h2>
-                    <p className="text-sm sm:text-base text-gray-600 font-light">
-                      Osnovne informacije o vašem salonu
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
+          <div className="space-y-12">
+            <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
+              <div className="px-6 py-8 sm:px-10 sm:py-9">
+                <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-3">
+                    <p className="text-xs font-medium uppercase tracking-[0.35em] text-zinc-400">
+                      Kontrolna tabla
+                    </p>
+                    <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
+                      {salon?.name}
+                    </h1>
+                    <p className="max-w-xl text-sm text-zinc-500">
+                      Pregledajte rezultate salona, upravljajte timom i osvežite podatke sa istog mesta.
                     </p>
                   </div>
-                  <SalonDetailsSection salon={salon} />
+                  <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                    <Button
+                      as="a"
+                      href={`/s/${salon.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      variant="primary"
+                      className="justify-center"
+                    >
+                      Otvori javnu stranicu
+                    </Button>
+                  </div>
                 </div>
 
-                {/* Barbers Section */}
-                <div>
-                  <div className="mb-6 lg:mb-8">
-                    <h2 className="text-xl sm:text-2xl font-light text-gray-900 mb-2 tracking-tight">
-                      Frizeri
-                    </h2>
-                    <p className="text-sm sm:text-base text-gray-600 font-light">
-                      Upravljajte frizerima i njihovim uslugama
-                    </p>
-                  </div>
-                  <BarbersSection salonId={salon.id} />
+                <div className="mt-10 grid gap-4 sm:grid-cols-3">
+                  {highlightCards.map((card) => (
+                    <div
+                      key={card.label}
+                      className="rounded-2xl border border-zinc-100 bg-white px-5 py-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-lg">
+                          {card.icon}
+                        </span>
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.35em] text-zinc-400">{card.label}</p>
+                          <p className="mt-2 text-base font-semibold text-zinc-900 break-words">{card.value}</p>
+                          <p className="mt-1 text-xs text-zinc-400">{card.helper}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                
               </div>
-            
+            </section>
+
+            <section className="space-y-5">
+              <div className="flex flex-col gap-1">
+                <h2 className="text-xl font-semibold text-zinc-900">Podaci o salonu</h2>
+                <p className="text-sm text-zinc-500">Brzo osvežite osnovne informacije o salonu.</p>
+              </div>
+              <SalonDetailsSection salon={salon} />
+            </section>
+
+            <section className="space-y-5">
+              <div className="flex flex-col gap-1">
+                <h2 className="text-xl font-semibold text-zinc-900">Tim frizera</h2>
+                <p className="text-sm text-zinc-500">Upravljajte nalozima frizera i njihovom aktivnošću.</p>
+              </div>
+              <BarbersSection salonId={salon.id} onCountChange={setBarberCount} />
+            </section>
           </div>
-        </Container>
+        </div>
       </div>
     </Layout>
   );

@@ -4,14 +4,22 @@ import PozadinaVideo from '../assets/pozadina.mp4';
 
 export default function Hero() {
   const scrollToNext = () => {
-    window.scrollTo({
-      top: window.innerHeight,
-      behavior: 'smooth'
-    });
+    const viewportHeight = window.innerHeight;
+    const navbarHeight = 56; // h-14 = 56px
+    
+    try {
+      window.scrollTo({
+        top: viewportHeight - navbarHeight,
+        behavior: 'smooth'
+      });
+    } catch (e) {
+      // Fallback for older browsers
+      window.scrollTo(0, viewportHeight - navbarHeight);
+    }
   };
 
   return (
-    <section className="relative h-screen overflow-hidden -mt-14">
+    <section className="relative h-screen overflow-hidden">
       <video 
         autoPlay 
         muted 

@@ -1,4 +1,11 @@
-export default function Button({ children, className = '', variant = 'primary', size = 'md', ...props }) {
+export default function Button({
+  as: Component = 'button',
+  children,
+  className = '',
+  variant = 'primary',
+  size = 'md',
+  ...props
+}) {
   const base = 'inline-flex items-center justify-center font-light disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none transition-all duration-200 hover:scale-[1.02]';
   const sizes = {
     sm: 'px-3 py-1.5 text-sm rounded-full',
@@ -13,9 +20,13 @@ export default function Button({ children, className = '', variant = 'primary', 
     success: 'bg-green-600 text-white hover:bg-green-700',
   };
   const cls = `${base} ${sizes[size]} ${variants[variant]} ${className}`;
+  const componentProps = { ...props };
+  if (Component === 'button' && !('type' in componentProps)) {
+    componentProps.type = 'button';
+  }
   return (
-    <button className={cls} {...props}>
+    <Component className={cls} {...componentProps}>
       {children}
-    </button>
+    </Component>
   );
 }

@@ -50,11 +50,14 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-200/50">
       <Container>
         <div className="flex h-14 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="text-lg font-semibold text-gray-900">
+          <Link 
+            to="/" 
+            className={`text-lg font-semibold text-gray-900 transition-opacity duration-200 ${isMenuOpen ? 'md:opacity-100 opacity-0' : 'opacity-100'}`}
+          >
             BarberBook
           </Link>
           
@@ -103,24 +106,52 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2"
+            className="md:hidden p-2 z-[102] relative"
             aria-label="Menu"
           >
-            <div className="w-5 h-5 flex flex-col justify-center space-y-1">
-              <div className={`w-5 h-0.5 bg-gray-900 transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-1' : ''}`}></div>
-              <div className={`w-5 h-0.5 bg-gray-900 transition-all duration-300 ${isMenuOpen ? 'opacity-0' : ''}`}></div>
-              <div className={`w-5 h-0.5 bg-gray-900 transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-1' : ''}`}></div>
+            <div className="w-6 h-6 flex flex-col justify-center items-center">
+              {!isMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
             </div>
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Backdrop */}
         {isMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200">
-            <div className="py-4 space-y-2">
+          <div 
+            className="md:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-[100]"
+            onClick={() => setIsMenuOpen(false)}
+          />
+        )}
+
+        {/* Mobile Menu Panel */}
+        <div className={`md:hidden fixed top-0 right-0 h-screen w-80 max-w-[85vw] bg-white border-l border-zinc-200/50 z-[101] transform transition-transform duration-300 ease-out ${
+          isMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}>
+          {/* Header with Logo and Close Button */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
+            <Link 
+              to="/" 
+              className="text-xl font-semibold text-gray-900"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              BarberBook
+            </Link>
+          </div>
+
+          {/* Menu Content */}
+          <div className="px-6 pt-8 pb-6">
+            <nav className="space-y-8">
               <Link 
                 to="/" 
-                className="block px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                className="block text-xl font-light text-zinc-700 hover:text-zinc-900 transition-colors border-b border-zinc-100 pb-4"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Početna
@@ -129,39 +160,43 @@ export default function Navbar() {
                 <>
                   <Link 
                     to="/register-salon" 
-                    className="block px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                    className="block text-xl font-light text-zinc-700 hover:text-zinc-900 transition-colors border-b border-zinc-100 pb-4"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Za salone
+                    Registruj salon
                   </Link>
-                  <Link 
-                    to="/owner/login" 
-                    className="block mx-4 mt-4 px-4 py-2 text-center text-sm font-light tracking-tight text-white bg-zinc-900 rounded-full hover:bg-zinc-800 transition-all duration-200"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Prijava
-                  </Link>
+                  <div className="pt-4">
+                    <Link 
+                      to="/owner/login" 
+                      className="block w-full px-8 py-4 text-center text-base font-light tracking-tight text-white bg-zinc-900 rounded-full hover:bg-zinc-800 hover:scale-[1.02] transition-all duration-200"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Prijava
+                    </Link>
+                  </div>
                 </>
               ) : (
                 <>
                   <Link 
                     to="/owner/dashboard" 
-                    className="block px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                    className="block text-xl font-light text-zinc-700 hover:text-zinc-900 transition-colors border-b border-zinc-100 pb-4"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Dashboard
                   </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="block mx-4 mt-4 px-4 py-2 text-center text-sm font-light tracking-tight text-white bg-zinc-900 rounded-full hover:bg-zinc-800 transition-all duration-200 w-[calc(100%-2rem)]"
-                  >
-                    Odjavi se
-                  </button>
+                  <div className="pt-4">
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full px-8 py-4 text-center text-base font-light tracking-tight text-white bg-zinc-900 rounded-full hover:bg-zinc-800 hover:scale-[1.02] transition-all duration-200"
+                    >
+                      Odjavi se
+                    </button>
+                  </div>
                 </>
               )}
-            </div>
+            </nav>
           </div>
-        )}
+        </div>
       </Container>
     </nav>
   );
