@@ -113,3 +113,28 @@ func (h *SalonsReadWriteHandler) UpdateSalon(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, out)
 }
+
+// GetMySalon finds the salon for the authenticated owner using token subject.
+func (h *SalonsReadWriteHandler) GetMySalon(c *gin.Context) {
+	uid, ok := c.Get("user_id")
+	if !ok {
+		Unauthorized(c, "missing_token", "authorization required")
+		return
+	}
+	uidStr, ok := uid.(string)
+	if !ok {
+		Unauthorized(c, "invalid_token", "invalid token")
+		return
+	}
+	ownerID, err := uuid.Parse(uidStr)
+	if err != nil {
+		Unauthorized(c, "invalid_token", "invalid token")
+		return
+	}
+	s, err := h.repo.GetByOwnerID(c.Request.Context(), ownerID)
+	if err != nil {
+		NotFound(c, "salon_not_found", "salon not found for this owner")
+		return
+	}
+	c.JSON(http.StatusOK, s)
+}

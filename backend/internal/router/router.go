@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/BirtasevicLazar/BarberBook/backend/internal/config"
 	"github.com/BirtasevicLazar/BarberBook/backend/internal/handlers"
@@ -19,8 +20,15 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 	// Avoid trusted proxy warning; in production, configure via env as needed.
 	_ = r.SetTrustedProxies(nil)
 
-	// CORS (dev-friendly default). Optionally tighten with AllowedOrigins from env.
-	r.Use(cors.Default())
+	// CORS: allow frontend dev origin and Authorization header
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173", "http://127.0.0.1:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// Health (public)
 	r.GET("/health", func(c *gin.Context) {
@@ -104,6 +112,8 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 			owners := authz.Group("")
 			owners.Use(jwtAuth.RequireRole("owner"))
 			{
+				// Owner: get my salon (from token subject)
+				owners.GET("/owner/me/salon", salonsRW.GetMySalon)
 				// Add barber to salon
 				owners.POST("/salons/:salon_id/barbers", barbersHandler.CreateBarber)
 				// Barbers CRUD
