@@ -20,6 +20,7 @@ type TabKey = 'services' | 'working-hours' | 'time-off' | 'appointments';
 
 const serviceIcon: ImageSourcePropType = require('./src/assets/icons/ServiceIcon.png');
 const workingHoursIcon: ImageSourcePropType = require('./src/assets/icons/WorkingHours.png');
+const daysOffIcon: ImageSourcePropType = require('./src/assets/icons/DaysOff.png');
 
 type NavDefinition = {
   key: TabKey;
@@ -32,7 +33,7 @@ type NavDefinition = {
 const NAV_ITEMS: NavDefinition[] = [
   { key: 'services', label: 'Usluge', asset: serviceIcon },
   { key: 'working-hours', label: 'Raspored', asset: workingHoursIcon },
-  { key: 'time-off', label: 'Neradni dani', icon: 'calendar-remove-outline' },
+  { key: 'time-off', label: 'Neradni dani', asset: daysOffIcon },
   { key: 'appointments', label: 'Termini', icon: 'calendar-month-outline', disabled: true },
 ];
 
