@@ -101,18 +101,34 @@ export default function BookingWidget({ salonId }) {
     };
   }, [selectedBarber]);
 
+  const [timeOffInfo, setTimeOffInfo] = useState(null);
+
   // Fetch availability when barber, service, or date changes
   useEffect(() => {
     if (!selectedBarber || !selectedService || !date) {
       setSlots([]);
+      setTimeOffInfo(null);
       return;
     }
     let mounted = true;
     setLoadingSlots(true);
     setError('');
+    setTimeOffInfo(null);
     api(`/public/barbers/${selectedBarber}/services/${selectedService}/availability?date=${date}`)
       .then((data) => {
-        if (mounted) setSlots(data || []);
+        if (mounted) {
+          // Backend now returns { slots: [], is_time_off: bool, time_off_info: string }
+          if (data && typeof data === 'object' && 'slots' in data) {
+            // slots can be null or array
+            setSlots(Array.isArray(data.slots) ? data.slots : []);
+            if (data.is_time_off && data.time_off_info) {
+              setTimeOffInfo(data.time_off_info);
+            }
+          } else {
+            // Fallback for old API format (array of slots)
+            setSlots(Array.isArray(data) ? data : []);
+          }
+        }
       })
       .catch((e) => setError(e.message || 'Greška pri učitavanju termina'))
       .finally(() => mounted && setLoadingSlots(false));
@@ -386,8 +402,17 @@ export default function BookingWidget({ salonId }) {
                       <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-900" />
                     </div>
                   ) : slots.length === 0 ? (
-                    <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-6 text-center text-sm text-zinc-500">
-                      Nema dostupnih termina za odabrani datum. Pokušajte drugi dan.
+                    <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-8 text-center">
+                      {timeOffInfo ? (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-zinc-700">Frizer ne radi ovog dana</p>
+                          <p className="text-xs text-zinc-500">{timeOffInfo}</p>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-zinc-500">
+                          Nema dostupnih termina za odabrani datum. Pokušajte drugi dan.
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">

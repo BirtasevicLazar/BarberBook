@@ -34,7 +34,7 @@ func (s *TimeOffService) List(ctx context.Context, barberID uuid.UUID) ([]models
 		return nil, err
 	}
 	defer rows.Close()
-	var out []models.BarberTimeOff
+	out := []models.BarberTimeOff{} // Initialize as empty slice instead of nil
 	for rows.Next() {
 		var t models.BarberTimeOff
 		if err := rows.Scan(&t.ID, &t.BarberID, &t.StartAt, &t.EndAt, &t.Reason); err != nil {

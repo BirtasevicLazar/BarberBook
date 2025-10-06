@@ -26,20 +26,26 @@ type Slot struct {
 	End   time.Time `json:"end"`
 }
 
+type AvailabilityResponse struct {
+	Slots       []Slot  `json:"slots"`
+	IsTimeOff   bool    `json:"is_time_off"`
+	TimeOffInfo *string `json:"time_off_info,omitempty"`
+}
+
 // internal interval type used for availability calculations
 type iv struct{ s, e time.Time }
 
 // Compute availability by intersecting working hours for the weekday, subtracting breaks and time off, and removing existing appointments; then tile by service duration
-func (s *AvailabilityService) GetDailyAvailability(ctx context.Context, in AvailabilityInput) ([]Slot, error) {
+func (s *AvailabilityService) GetDailyAvailability(ctx context.Context, in AvailabilityInput) (AvailabilityResponse, error) {
 	// Fetch service duration
 	var durationMin int
 	if err := s.db.QueryRow(ctx, `SELECT duration_min FROM barber_services WHERE id=$1 AND barber_id=$2 AND active=true`, in.ServiceID, in.BarberID).Scan(&durationMin); err != nil {
-		return nil, err
+		return AvailabilityResponse{}, err
 	}
 	// Resolve salon timezone via barber -> salon
 	var tz string
 	if err := s.db.QueryRow(ctx, `SELECT s.timezone FROM salons s JOIN barbers b ON b.salon_id = s.id WHERE b.id=$1`, in.BarberID).Scan(&tz); err != nil {
-		return nil, err
+		return AvailabilityResponse{}, err
 	}
 	loc, err := time.LoadLocation(tz)
 	if err != nil {
@@ -52,58 +58,76 @@ func (s *AvailabilityService) GetDailyAvailability(ctx context.Context, in Avail
 	// Working hours
 	whRows, err := s.db.Query(ctx, `SELECT start_time, end_time FROM barber_working_hours WHERE barber_id=$1 AND day_of_week=$2 ORDER BY start_time`, in.BarberID, weekday)
 	if err != nil {
-		return nil, err
+		return AvailabilityResponse{}, err
 	}
 	defer whRows.Close()
 	var working []iv
 	for whRows.Next() {
 		var st, en time.Time
 		if err := whRows.Scan(&st, &en); err != nil {
-			return nil, err
+			return AvailabilityResponse{}, err
 		}
 		working = append(working, iv{s: combineDate(dayStart, st), e: combineDate(dayStart, en)})
 	}
 	// Breaks
 	brRows, err := s.db.Query(ctx, `SELECT start_time, end_time FROM barber_breaks WHERE barber_id=$1 AND day_of_week=$2`, in.BarberID, weekday)
 	if err != nil {
-		return nil, err
+		return AvailabilityResponse{}, err
 	}
 	defer brRows.Close()
 	var breaks []iv
 	for brRows.Next() {
 		var st, en time.Time
 		if err := brRows.Scan(&st, &en); err != nil {
-			return nil, err
+			return AvailabilityResponse{}, err
 		}
 		breaks = append(breaks, iv{s: combineDate(dayStart, st), e: combineDate(dayStart, en)})
 	}
-	// Time off overlapping this day
-	toRows, err := s.db.Query(ctx, `SELECT start_at, end_at FROM barber_time_off WHERE barber_id=$1 AND NOT (end_at <= $2 OR start_at >= $3)`, in.BarberID, dayStart, dayEnd)
+	// Time off overlapping this day - also fetch reason
+	toRows, err := s.db.Query(ctx, `SELECT start_at, end_at, reason FROM barber_time_off WHERE barber_id=$1 AND NOT (end_at <= $2 OR start_at >= $3)`, in.BarberID, dayStart, dayEnd)
 	if err != nil {
-		return nil, err
+		return AvailabilityResponse{}, err
 	}
 	defer toRows.Close()
 	var offs []iv
+	var timeOffReason *string
 	for toRows.Next() {
 		var st, en time.Time
-		if err := toRows.Scan(&st, &en); err != nil {
-			return nil, err
+		var reason *string
+		if err := toRows.Scan(&st, &en, &reason); err != nil {
+			return AvailabilityResponse{}, err
 		}
 		offs = append(offs, iv{s: st, e: en})
+		// Store the first reason found (if multiple time-offs, we use the first one)
+		if timeOffReason == nil && reason != nil {
+			timeOffReason = reason
+		}
 	}
 	// Appointments for the day (excluding canceled)
 	apRows, err := s.db.Query(ctx, `SELECT start_at, end_at FROM appointments WHERE barber_id=$1 AND status <> 'canceled' AND start_at >= $2 AND start_at < $3`, in.BarberID, dayStart, dayEnd)
 	if err != nil {
-		return nil, err
+		return AvailabilityResponse{}, err
 	}
 	defer apRows.Close()
 	var busy []iv
 	for apRows.Next() {
 		var st, en time.Time
 		if err := apRows.Scan(&st, &en); err != nil {
-			return nil, err
+			return AvailabilityResponse{}, err
 		}
 		busy = append(busy, iv{s: st, e: en})
+	}
+
+	// Check if entire day is blocked by time off
+	isTimeOff := len(offs) > 0
+	var timeOffInfo *string
+	if isTimeOff {
+		// Build info string
+		info := "Frizer ne radi"
+		if timeOffReason != nil && *timeOffReason != "" {
+			info = *timeOffReason
+		}
+		timeOffInfo = &info
 	}
 
 	// Start with working intervals, subtract breaks, time_off and busy
@@ -123,7 +147,12 @@ func (s *AvailabilityService) GetDailyAvailability(ctx context.Context, in Avail
 	}
 	// sort
 	sort.Slice(slots, func(i, j int) bool { return slots[i].Start.Before(slots[j].Start) })
-	return slots, nil
+
+	return AvailabilityResponse{
+		Slots:       slots,
+		IsTimeOff:   isTimeOff,
+		TimeOffInfo: timeOffInfo,
+	}, nil
 }
 
 func combineDate(day time.Time, tod time.Time) time.Time {

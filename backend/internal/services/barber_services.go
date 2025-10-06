@@ -30,7 +30,7 @@ func (s *BarberServicesService) List(ctx context.Context, barberID uuid.UUID) ([
 		return nil, err
 	}
 	defer rows.Close()
-	var out []models.BarberService
+	out := []models.BarberService{} // Initialize as empty slice
 	for rows.Next() {
 		var bs models.BarberService
 		if err := rows.Scan(&bs.ID, &bs.BarberID, &bs.Name, &bs.Price, &bs.DurationMin, &bs.Active, &bs.CreatedAt); err != nil {

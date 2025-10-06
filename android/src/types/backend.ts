@@ -50,3 +50,19 @@ export interface CreateBreakPayload {
 }
 
 export interface UpdateBreakPayload extends CreateBreakPayload {}
+
+export interface BarberTimeOff {
+  id: string;
+  barberId: string;
+  startAt: string; // ISO 8601 datetime
+  endAt: string;   // ISO 8601 datetime
+  reason?: string | null;
+}
+
+export interface CreateTimeOffPayload {
+  startAt: string;
+  endAt: string;
+  reason?: string;
+}
+
+export interface UpdateTimeOffPayload extends CreateTimeOffPayload {}

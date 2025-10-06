@@ -9,6 +9,9 @@ import {
   BarberBreak,
   CreateBreakPayload,
   UpdateBreakPayload,
+  BarberTimeOff,
+  CreateTimeOffPayload,
+  UpdateTimeOffPayload,
 } from '../types/backend';
 
 interface BarberServiceDto {
@@ -72,7 +75,10 @@ function mapBreak(dto: BreakDto): BarberBreak {
 }
 
 export async function listBarberServices(auth: AuthCredentials): Promise<BarberService[]> {
-  const data = await request<BarberServiceDto[]>('/barber/services', { auth });
+  const data = await request<BarberServiceDto[] | null>('/barber/services', { auth });
+  if (!data || !Array.isArray(data)) {
+    return [];
+  }
   return data.map(mapBarberService);
 }
 
@@ -211,6 +217,73 @@ export async function updateBreak(
 
 export async function deleteBreak(auth: AuthCredentials, breakId: string): Promise<void> {
   await request(`/barber/breaks/${breakId}`, {
+    method: 'DELETE',
+    auth,
+  });
+}
+
+// Time Off API
+interface TimeOffDto {
+  id: string;
+  barber_id: string;
+  start_at: string;
+  end_at: string;
+  reason?: string | null;
+}
+
+function mapTimeOff(dto: TimeOffDto): BarberTimeOff {
+  return {
+    id: dto.id,
+    barberId: dto.barber_id,
+    startAt: dto.start_at,
+    endAt: dto.end_at,
+    reason: dto.reason ?? null,
+  };
+}
+
+export async function listTimeOff(auth: AuthCredentials): Promise<BarberTimeOff[]> {
+  const data = await request<TimeOffDto[] | null>('/barber/time-off', { auth });
+  if (!data || !Array.isArray(data)) {
+    return [];
+  }
+  return data.map(mapTimeOff);
+}
+
+export async function createTimeOff(
+  auth: AuthCredentials,
+  payload: CreateTimeOffPayload
+): Promise<BarberTimeOff> {
+  const data = await request<TimeOffDto>('/barber/time-off', {
+    method: 'POST',
+    auth,
+    body: {
+      start_at: payload.startAt,
+      end_at: payload.endAt,
+      reason: payload.reason || null,
+    },
+  });
+  return mapTimeOff(data);
+}
+
+export async function updateTimeOff(
+  auth: AuthCredentials,
+  timeOffId: string,
+  payload: UpdateTimeOffPayload
+): Promise<BarberTimeOff> {
+  const data = await request<TimeOffDto>(`/barber/time-off/${timeOffId}`, {
+    method: 'PUT',
+    auth,
+    body: {
+      start_at: payload.startAt,
+      end_at: payload.endAt,
+      reason: payload.reason || null,
+    },
+  });
+  return mapTimeOff(data);
+}
+
+export async function deleteTimeOff(auth: AuthCredentials, timeOffId: string): Promise<void> {
+  await request(`/barber/time-off/${timeOffId}`, {
     method: 'DELETE',
     auth,
   });
