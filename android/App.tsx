@@ -15,9 +15,10 @@ import ServicesScreen from './src/screens/ServicesScreen';
 import ScheduleScreen from './src/screens/ScheduleScreen';
 import { palette, theme } from './src/styles/theme';
 
-type TabKey = 'services' | 'working-hours' | 'breaks' | 'time-off' | 'appointments';
+type TabKey = 'services' | 'working-hours' | 'time-off' | 'appointments';
 
 const serviceIcon: ImageSourcePropType = require('./src/assets/icons/ServiceIcon.png');
+const workingHoursIcon: ImageSourcePropType = require('./src/assets/icons/WorkingHours.png');
 
 type NavDefinition = {
   key: TabKey;
@@ -29,8 +30,7 @@ type NavDefinition = {
 
 const NAV_ITEMS: NavDefinition[] = [
   { key: 'services', label: 'Usluge', asset: serviceIcon },
-  { key: 'working-hours', label: 'Raspored', icon: 'clock-outline' },
-  { key: 'breaks', label: 'Pauze', icon: 'coffee-outline', disabled: true },
+  { key: 'working-hours', label: 'Raspored', asset: workingHoursIcon },
   { key: 'time-off', label: 'Neradni dani', icon: 'calendar-remove-outline', disabled: true },
   { key: 'appointments', label: 'Termini', icon: 'calendar-month-outline', disabled: true },
 ];
@@ -89,13 +89,6 @@ function renderScreen(tab: TabKey) {
       return <ServicesScreen />;
     case 'working-hours':
       return <ScheduleScreen />;
-    case 'breaks':
-      return (
-        <PlaceholderScreen
-          title="Pauze"
-          description="Uskoro ćete ovde moći da dodate pauze tokom dana."
-        />
-      );
     case 'time-off':
       return (
         <PlaceholderScreen
