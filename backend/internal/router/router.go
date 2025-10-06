@@ -64,6 +64,7 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 		// Public routes
 		api.POST("/salons", salonsHandler.CreateSalon)               // create salon + owner
 		api.POST("/auth/login", authHandler.Login)                   // owner login
+		api.POST("/auth/barber/login", authHandler.BarberLogin)      // barber login (mobile app)
 		api.GET("/public/salons/:salon_id", salonsRW.PublicGetSalon) // public read-only salon profile
 		api.GET("/public/salons/:salon_id/barbers", publicHandler.ListActiveBarbers)
 		api.GET("/public/barbers/:barber_id/services", publicHandler.ListActiveServices)

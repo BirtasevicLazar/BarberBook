@@ -64,7 +64,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const login = useCallback(async (email: string, password: string) => {
     const trimmedEmail = email.trim().toLowerCase();
-    const res = await request<LoginResponse>('/auth/login', {
+    const res = await request<LoginResponse>('/auth/barber/login', {
       method: 'POST',
       body: {
         email: trimmedEmail,

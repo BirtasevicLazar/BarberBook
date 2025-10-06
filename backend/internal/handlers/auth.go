@@ -41,3 +41,29 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"access_token": tok, "token_type": "Bearer"})
 }
+
+// BarberLogin is a login endpoint specifically for barbers (mobile app).
+// It validates credentials and ensures the user has role="barber".
+func (h *AuthHandler) BarberLogin(c *gin.Context) {
+	var req loginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, "invalid_body", err.Error())
+		return
+	}
+	userID, role, err := h.svc.Login(c.Request.Context(), req.Email, req.Password)
+	if err != nil {
+		Unauthorized(c, "invalid_credentials", "invalid credentials")
+		return
+	}
+	// Ensure only barbers can login through this endpoint
+	if role != "barber" {
+		Unauthorized(c, "not_barber", "this login is only for barbers")
+		return
+	}
+	tok, err := h.jwtAu.GenerateToken(userID, role)
+	if err != nil {
+		ServerError(c, "token_issue_failed", "failed to issue token")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"access_token": tok, "token_type": "Bearer"})
+}
