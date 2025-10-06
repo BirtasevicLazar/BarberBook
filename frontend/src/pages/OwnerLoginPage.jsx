@@ -19,7 +19,7 @@ export default function OwnerLoginPage() {
     setLoading(true);
     
     try {
-      const { access_token } = await api('/auth/login', { 
+      const { access_token } = await api('/auth/owner/login', { 
         method: 'POST', 
         body: { 
           email: email.trim().toLowerCase(), 
