@@ -39,7 +39,7 @@ func (s *WorkingHoursService) List(ctx context.Context, barberID uuid.UUID) ([]m
 		return nil, err
 	}
 	defer rows.Close()
-	var out []models.BarberWorkingHour
+	out := make([]models.BarberWorkingHour, 0) // Initialize with empty slice instead of nil
 	for rows.Next() {
 		var wh models.BarberWorkingHour
 		if err := rows.Scan(&wh.ID, &wh.BarberID, &wh.DayOfWeek, &wh.StartTime, &wh.EndTime); err != nil {

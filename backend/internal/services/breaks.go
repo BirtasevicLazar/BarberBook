@@ -37,7 +37,7 @@ func (s *BreaksService) List(ctx context.Context, barberID uuid.UUID) ([]models.
 		return nil, err
 	}
 	defer rows.Close()
-	var out []models.BarberBreak
+	out := make([]models.BarberBreak, 0) // Initialize with empty slice instead of nil
 	for rows.Next() {
 		var b models.BarberBreak
 		if err := rows.Scan(&b.ID, &b.BarberID, &b.DayOfWeek, &b.StartTime, &b.EndTime); err != nil {

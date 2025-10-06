@@ -12,6 +12,7 @@ import TopNavBar from './src/components/TopNavBar';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
 import ServicesScreen from './src/screens/ServicesScreen';
+import ScheduleScreen from './src/screens/ScheduleScreen';
 import { palette, theme } from './src/styles/theme';
 
 type TabKey = 'services' | 'working-hours' | 'breaks' | 'time-off' | 'appointments';
@@ -28,7 +29,7 @@ type NavDefinition = {
 
 const NAV_ITEMS: NavDefinition[] = [
   { key: 'services', label: 'Usluge', asset: serviceIcon },
-  { key: 'working-hours', label: 'Radno vreme', icon: 'clock-outline', disabled: true },
+  { key: 'working-hours', label: 'Raspored', icon: 'clock-outline' },
   { key: 'breaks', label: 'Pauze', icon: 'coffee-outline', disabled: true },
   { key: 'time-off', label: 'Neradni dani', icon: 'calendar-remove-outline', disabled: true },
   { key: 'appointments', label: 'Termini', icon: 'calendar-month-outline', disabled: true },
@@ -87,12 +88,7 @@ function renderScreen(tab: TabKey) {
     case 'services':
       return <ServicesScreen />;
     case 'working-hours':
-      return (
-        <PlaceholderScreen
-          title="Radno vreme"
-          description="Ovaj deo je u pripremi. Uskoro ćete moći da podesite radne sate i intervale."
-        />
-      );
+      return <ScheduleScreen />;
     case 'breaks':
       return (
         <PlaceholderScreen
