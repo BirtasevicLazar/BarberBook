@@ -574,104 +574,110 @@ export default function AppointmentsScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <View style={styles.statusBadge}>
-                  <Text style={[styles.statusBadgeText, { color: getStatusColor(selectedAppointment.status) }]}>
-                    {getStatusLabel(selectedAppointment.status)}
-                  </Text>
-                </View>
-
-                <View style={styles.detailsContainer}>
-                  <View style={styles.detailItem}>
-                    <Text style={styles.detailIcon}>👤</Text>
-                    <View style={styles.detailTextContainer}>
-                      <Text style={styles.detailLabel}>Klijent</Text>
-                      <Text style={styles.detailValue}>{selectedAppointment.customerName}</Text>
-                    </View>
+                <ScrollView 
+                  style={styles.modalScrollView}
+                  contentContainerStyle={styles.modalScrollContent}
+                  showsVerticalScrollIndicator={false}
+                >
+                  <View style={styles.statusBadge}>
+                    <Text style={[styles.statusBadgeText, { color: getStatusColor(selectedAppointment.status) }]}>
+                      {getStatusLabel(selectedAppointment.status)}
+                    </Text>
                   </View>
 
-                  {selectedAppointment.customerPhone && (
+                  <View style={styles.detailsContainer}>
                     <View style={styles.detailItem}>
-                      <Text style={styles.detailIcon}>📱</Text>
+                      <Text style={styles.detailIcon}>👤</Text>
                       <View style={styles.detailTextContainer}>
-                        <Text style={styles.detailLabel}>Telefon</Text>
-                        <Text style={styles.detailValue}>{selectedAppointment.customerPhone}</Text>
+                        <Text style={styles.detailLabel}>Klijent</Text>
+                        <Text style={styles.detailValue}>{selectedAppointment.customerName}</Text>
                       </View>
                     </View>
-                  )}
 
-                  <View style={styles.detailItem}>
-                    <Text style={styles.detailIcon}>🕐</Text>
-                    <View style={styles.detailTextContainer}>
-                      <Text style={styles.detailLabel}>Vreme</Text>
-                      <Text style={styles.detailValue}>
-                        {formatTime(selectedAppointment.startAt)} - {formatTime(selectedAppointment.endAt)}
-                      </Text>
-                    </View>
-                  </View>
+                    {selectedAppointment.customerPhone && (
+                      <View style={styles.detailItem}>
+                        <Text style={styles.detailIcon}>📱</Text>
+                        <View style={styles.detailTextContainer}>
+                          <Text style={styles.detailLabel}>Telefon</Text>
+                          <Text style={styles.detailValue}>{selectedAppointment.customerPhone}</Text>
+                        </View>
+                      </View>
+                    )}
 
-                  <View style={styles.detailItem}>
-                    <Text style={styles.detailIcon}>⏱</Text>
-                    <View style={styles.detailTextContainer}>
-                      <Text style={styles.detailLabel}>Trajanje</Text>
-                      <Text style={styles.detailValue}>{selectedAppointment.durationMin} min</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.detailItem}>
-                    <Text style={styles.detailIcon}>💰</Text>
-                    <View style={styles.detailTextContainer}>
-                      <Text style={styles.detailLabel}>Cena</Text>
-                      <Text style={styles.detailValue}>{selectedAppointment.price} RSD</Text>
-                    </View>
-                  </View>
-
-                  {selectedAppointment.notes && (
                     <View style={styles.detailItem}>
-                      <Text style={styles.detailIcon}>📝</Text>
+                      <Text style={styles.detailIcon}>🕐</Text>
                       <View style={styles.detailTextContainer}>
-                        <Text style={styles.detailLabel}>Napomena</Text>
-                        <Text style={styles.detailValue}>{selectedAppointment.notes}</Text>
+                        <Text style={styles.detailLabel}>Vreme</Text>
+                        <Text style={styles.detailValue}>
+                          {formatTime(selectedAppointment.startAt)} - {formatTime(selectedAppointment.endAt)}
+                        </Text>
                       </View>
                     </View>
-                  )}
-                </View>
 
-                {/* Action Buttons */}
-                {(selectedAppointment.status === 'pending' || selectedAppointment.status === 'confirmed') && (
-                  <View style={styles.modalActions}>
-                    {selectedAppointment.status === 'pending' && (
+                    <View style={styles.detailItem}>
+                      <Text style={styles.detailIcon}>⏱</Text>
+                      <View style={styles.detailTextContainer}>
+                        <Text style={styles.detailLabel}>Trajanje</Text>
+                        <Text style={styles.detailValue}>{selectedAppointment.durationMin} min</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.detailItem}>
+                      <Text style={styles.detailIcon}>💰</Text>
+                      <View style={styles.detailTextContainer}>
+                        <Text style={styles.detailLabel}>Cena</Text>
+                        <Text style={styles.detailValue}>{selectedAppointment.price} RSD</Text>
+                      </View>
+                    </View>
+
+                    {selectedAppointment.notes && (
+                      <View style={styles.detailItem}>
+                        <Text style={styles.detailIcon}>📝</Text>
+                        <View style={styles.detailTextContainer}>
+                          <Text style={styles.detailLabel}>Napomena</Text>
+                          <Text style={styles.detailValue}>{selectedAppointment.notes}</Text>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Action Buttons */}
+                  {(selectedAppointment.status === 'pending' || selectedAppointment.status === 'confirmed') && (
+                    <View style={styles.modalActions}>
+                      {selectedAppointment.status === 'pending' && (
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.confirmButton]}
+                          onPress={() => handleConfirm(selectedAppointment.id)}
+                          disabled={actionLoading}
+                        >
+                          {actionLoading ? (
+                            <ActivityIndicator color="#fff" size="small" />
+                          ) : (
+                            <>
+                              <Text style={styles.actionIcon}>✓</Text>
+                              <Text style={styles.actionButtonText}>Potvrdi</Text>
+                            </>
+                          )}
+                        </TouchableOpacity>
+                      )}
+
                       <TouchableOpacity
-                        style={[styles.actionButton, styles.confirmButton]}
-                        onPress={() => handleConfirm(selectedAppointment.id)}
+                        style={[styles.actionButton, styles.cancelButton]}
+                        onPress={() => handleCancel(selectedAppointment.id)}
                         disabled={actionLoading}
                       >
                         {actionLoading ? (
                           <ActivityIndicator color="#fff" size="small" />
                         ) : (
                           <>
-                            <Text style={styles.actionIcon}>✓</Text>
-                            <Text style={styles.actionButtonText}>Potvrdi</Text>
+                            <Text style={styles.actionIcon}>✕</Text>
+                            <Text style={styles.actionButtonText}>Otkaži</Text>
                           </>
                         )}
                       </TouchableOpacity>
-                    )}
-
-                    <TouchableOpacity
-                      style={[styles.actionButton, styles.cancelButton]}
-                      onPress={() => handleCancel(selectedAppointment.id)}
-                      disabled={actionLoading}
-                    >
-                      {actionLoading ? (
-                        <ActivityIndicator color="#fff" size="small" />
-                      ) : (
-                        <>
-                          <Text style={styles.actionIcon}>✕</Text>
-                          <Text style={styles.actionButtonText}>Otkaži</Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                )}
+                    </View>
+                  )}
+                </ScrollView>
               </>
             )}
           </View>
@@ -808,21 +814,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: theme.spacing(4),
     paddingVertical: theme.spacing(3),
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#000',
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
   },
   navButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 20,
-    backgroundColor: theme.colors.accent,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   arrowIcon: {
-    width: 20,
-    height: 20,
+    width: 22,
+    height: 22,
     tintColor: '#fff',
   },
   arrowLeft: {
@@ -833,9 +839,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
-    color: theme.colors.primary,
+    color: '#fff',
+    letterSpacing: 0.3,
   },
   scrollView: {
     flex: 1,
@@ -989,166 +996,206 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: theme.colors.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: '#000',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     padding: theme.spacing(5),
     maxHeight: '85%',
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  modalScrollView: {
+    flexGrow: 0,
+  },
+  modalScrollContent: {
+    paddingBottom: theme.spacing(2),
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing(3),
+    marginBottom: theme.spacing(4),
+    paddingBottom: theme.spacing(3),
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
-    color: theme.colors.primary,
+    color: '#fff',
+    letterSpacing: 0.3,
   },
   closeIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: theme.colors.background,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeIconText: {
-    fontSize: 18,
-    color: theme.colors.secondary,
-    fontWeight: '600',
+    fontSize: 20,
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontWeight: '400',
   },
   statusBadge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: theme.spacing(3),
-    paddingVertical: theme.spacing(1.5),
-    borderRadius: 20,
-    backgroundColor: theme.colors.background,
+    paddingHorizontal: theme.spacing(4),
+    paddingVertical: theme.spacing(2),
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     marginBottom: theme.spacing(4),
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   statusBadgeText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
+    letterSpacing: 0.2,
   },
   detailsContainer: {
-    gap: theme.spacing(3),
+    gap: theme.spacing(3.5),
   },
   detailItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: theme.spacing(3),
+    paddingVertical: theme.spacing(1),
   },
   detailIcon: {
-    fontSize: 22,
-    width: 32,
+    fontSize: 24,
+    width: 36,
+    textAlign: 'center',
   },
   detailTextContainer: {
     flex: 1,
   },
   detailLabel: {
-    fontSize: 12,
-    color: theme.colors.secondary,
-    marginBottom: theme.spacing(0.5),
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginBottom: theme.spacing(0.75),
+    letterSpacing: 0.2,
   },
   detailValue: {
-    fontSize: 15,
-    color: theme.colors.primary,
+    fontSize: 16,
+    color: '#fff',
     fontWeight: '500',
+    letterSpacing: 0.2,
   },
   modalActions: {
     flexDirection: 'row',
     marginTop: theme.spacing(5),
-    gap: theme.spacing(2),
+    gap: theme.spacing(3),
+    paddingTop: theme.spacing(3),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
   },
   actionButton: {
     flex: 1,
     flexDirection: 'row',
-    paddingVertical: theme.spacing(2.5),
-    borderRadius: 10,
+    paddingVertical: theme.spacing(3),
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: theme.spacing(1),
+    gap: theme.spacing(1.5),
   },
   confirmButton: {
-    backgroundColor: theme.colors.success,
+    backgroundColor: 'rgba(50, 215, 75, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(50, 215, 75, 0.3)',
   },
   cancelButton: {
-    backgroundColor: theme.colors.danger,
+    backgroundColor: 'rgba(255, 69, 58, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 69, 58, 0.3)',
   },
   actionIcon: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#fff',
     fontWeight: '700',
   },
   actionButtonText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     color: '#fff',
+    letterSpacing: 0.3,
   },
   formContainer: {
     maxHeight: 400,
   },
   formSection: {
-    marginBottom: theme.spacing(3),
+    marginBottom: theme.spacing(4),
   },
   formLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
-    color: theme.colors.secondary,
-    marginBottom: theme.spacing(1),
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: theme.spacing(2),
+    letterSpacing: 0.3,
   },
   formValue: {
-    fontSize: 15,
-    color: theme.colors.primary,
+    fontSize: 16,
+    color: '#fff',
     fontWeight: '500',
+    paddingVertical: theme.spacing(2),
+    paddingHorizontal: theme.spacing(3),
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   textInput: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 10,
-    paddingHorizontal: theme.spacing(3),
-    paddingVertical: theme.spacing(2),
-    fontSize: 15,
-    color: theme.colors.primary,
+    borderRadius: 12,
+    paddingHorizontal: theme.spacing(3.5),
+    paddingVertical: theme.spacing(3),
+    fontSize: 16,
+    color: '#fff',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    letterSpacing: 0.2,
   },
   textArea: {
-    height: 80,
+    height: 90,
     textAlignVertical: 'top',
   },
   servicesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing(2),
+    gap: theme.spacing(2.5),
   },
   serviceChip: {
-    paddingHorizontal: theme.spacing(3),
-    paddingVertical: theme.spacing(2),
-    borderRadius: 10,
+    paddingHorizontal: theme.spacing(3.5),
+    paddingVertical: theme.spacing(2.5),
+    borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   serviceChipSelected: {
-    backgroundColor: theme.colors.accent,
-    borderColor: theme.colors.accent,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: '#fff',
+    borderWidth: 2,
   },
   serviceChipText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: theme.colors.secondary,
-    marginBottom: theme.spacing(0.5),
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: theme.spacing(0.75),
+    letterSpacing: 0.2,
   },
   serviceChipTextSelected: {
     color: '#fff',
   },
   serviceChipPrice: {
-    fontSize: 12,
-    color: theme.colors.tertiary,
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontWeight: '500',
   },
 });
