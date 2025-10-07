@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { API_BASE_URL } from '@env';
 
 export interface ApiErrorShape {
   status: number;
@@ -33,7 +34,7 @@ export interface RequestOptions {
   signal?: AbortSignal;
 }
 
-const BASE_HOST = Platform.OS === 'android' ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
+const BASE_HOST = API_BASE_URL || 'http://localhost:8080';
 const API_BASE = `${BASE_HOST}/api/v1`;
 
 function resolveUrl(path: string): string {
