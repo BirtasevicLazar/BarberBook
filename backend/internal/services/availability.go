@@ -166,15 +166,18 @@ func subtractIntervals(base, sub []iv) []iv {
 	for _, s := range sub {
 		var next []iv
 		for _, b := range out {
-			// no overlap if s.e <= b.s OR s.s >= b.e
-			if !s.e.After(b.s) || !s.s.Before(b.e) {
+			// no overlap if s ends before or at b starts, OR s starts after or at b ends
+			if s.e.Before(b.s) || s.e.Equal(b.s) || s.s.After(b.e) || s.s.Equal(b.e) {
+				// No overlap, keep the entire base interval
 				next = append(next, b)
 				continue
 			}
-			// overlap: split
+			// There is overlap, split the base interval
+			// Keep the part before the subtraction (if any)
 			if s.s.After(b.s) {
 				next = append(next, iv{s: b.s, e: s.s})
 			}
+			// Keep the part after the subtraction (if any)
 			if s.e.Before(b.e) {
 				next = append(next, iv{s: s.e, e: b.e})
 			}

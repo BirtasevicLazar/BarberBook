@@ -215,3 +215,48 @@ func (h *AppointmentsHandler) CancelByBarber(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, a)
 }
+
+// Barber-only: delete appointment
+func (h *AppointmentsHandler) DeleteByBarber(c *gin.Context) {
+	uidVal, ok := c.Get("user_id")
+	if !ok {
+		Unauthorized(c, "missing_token", "authorization required")
+		return
+	}
+	uidStr, ok := uidVal.(string)
+	if !ok {
+		Unauthorized(c, "invalid_token", "invalid token")
+		return
+	}
+	userID, err := uuid.Parse(uidStr)
+	if err != nil {
+		Unauthorized(c, "invalid_token", "invalid token")
+		return
+	}
+	b, err := h.barbersSvc.GetBarberByUser(c.Request.Context(), userID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			NotFound(c, "barber_not_found", "barber profile not found")
+			return
+		}
+		ServerError(c, "barber_lookup_failed", err.Error())
+		return
+	}
+
+	apptID, err := uuid.Parse(c.Param("appointment_id"))
+	if err != nil {
+		BadRequest(c, "invalid_appointment_id", "invalid appointment_id")
+		return
+	}
+
+	err = h.svc.DeleteByBarber(c.Request.Context(), b.ID, apptID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			NotFound(c, "appointment_not_found", "appointment not found")
+			return
+		}
+		ServerError(c, "delete_failed", err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "appointment deleted"})
+}

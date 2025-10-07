@@ -179,4 +179,19 @@ func (s *AppointmentsService) CancelByBarber(ctx context.Context, barberID, appo
 	return a, nil
 }
 
+// DeleteByBarber: only barber can delete their own appointment
+func (s *AppointmentsService) DeleteByBarber(ctx context.Context, barberID, appointmentID uuid.UUID) error {
+	result, err := s.db.Exec(ctx,
+		`DELETE FROM appointments WHERE id=$1 AND barber_id=$2`,
+		appointmentID, barberID,
+	)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
+}
+
 // no helper needed; using strconv.Itoa

@@ -10,11 +10,22 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  TextInput,
 } from 'react-native';
 import { theme } from '../styles/theme';
 import { useAuth } from '../contexts/AuthContext';
-import { listAppointments, confirmAppointment, cancelAppointment, listWorkingHours } from '../api/barber';
-import { Appointment, AppointmentStatus, BarberWorkingHour } from '../types/backend';
+import { 
+  listAppointments, 
+  confirmAppointment, 
+  cancelAppointment,
+  deleteAppointment, 
+  listWorkingHours, 
+  createAppointment,
+  listBarberServices,
+  getBarberProfile,
+  BarberProfile,
+} from '../api/barber';
+import { Appointment, AppointmentStatus, BarberWorkingHour, BarberService } from '../types/backend';
 
 interface TimeSlot {
   time: string;
@@ -33,10 +44,31 @@ export default function AppointmentsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  
+  // Create appointment modal
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
+  const [services, setServices] = useState<BarberService[]>([]);
+  const [barberProfile, setBarberProfile] = useState<BarberProfile | null>(null);
+  const [formData, setFormData] = useState({
+    serviceId: '',
+    customerName: '',
+    customerPhone: '',
+    notes: '',
+  });
 
-  // Load working hours (once)
+  // Load working hours, services, and barber profile (once)
   useEffect(() => {
     if (!credentials) return;
+    
+    const loadBarberProfile = async () => {
+      try {
+        const profile = await getBarberProfile(credentials);
+        setBarberProfile(profile);
+      } catch (error: any) {
+        console.error('Failed to load barber profile:', error);
+      }
+    };
     
     const loadWorkingHours = async () => {
       try {
@@ -47,7 +79,18 @@ export default function AppointmentsScreen() {
       }
     };
     
+    const loadServices = async () => {
+      try {
+        const servicesList = await listBarberServices(credentials);
+        setServices(servicesList.filter(s => s.active));
+      } catch (error: any) {
+        console.error('Failed to load services:', error);
+      }
+    };
+    
+    loadBarberProfile();
     loadWorkingHours();
+    loadServices();
   }, [credentials]);
 
   const loadAppointments = useCallback(async () => {
@@ -82,7 +125,7 @@ export default function AppointmentsScreen() {
 
   // Generate time slots based on working hours
   useEffect(() => {
-    if (workingHours.length === 0) return;
+    if (workingHours.length === 0 || !barberProfile) return;
 
     const dayOfWeek = selectedDate.getDay();
     const todayWorkingHours = workingHours.filter(wh => wh.dayOfWeek === dayOfWeek);
@@ -93,21 +136,24 @@ export default function AppointmentsScreen() {
     }
 
     const slots: TimeSlot[] = [];
-    const slotDuration = 30; // 30 minutes per slot
+    const slotDuration = barberProfile.slotDurationMinutes; // Use barber's configured slot duration
 
     todayWorkingHours.forEach(wh => {
-      const startTime = new Date(wh.startTime);
-      const endTime = new Date(wh.endTime);
+      // Parse time string directly - backend sends "2000-01-01T10:00:00Z"
+      // Extract hour and minute from the ISO string
+      const startMatch = wh.startTime.match(/T(\d{2}):(\d{2})/);
+      const endMatch = wh.endTime.match(/T(\d{2}):(\d{2})/);
       
-      // Use UTC hours to avoid timezone issues
-      const startHourUTC = startTime.getUTCHours();
-      const startMinuteUTC = startTime.getUTCMinutes();
-      const endHourUTC = endTime.getUTCHours();
-      const endMinuteUTC = endTime.getUTCMinutes();
+      if (!startMatch || !endMatch) return;
+      
+      const startHour = parseInt(startMatch[1], 10);
+      const startMinute = parseInt(startMatch[2], 10);
+      const endHour = parseInt(endMatch[1], 10);
+      const endMinute = parseInt(endMatch[2], 10);
       
       // Convert to minutes for easier calculation
-      const startMinutes = startHourUTC * 60 + startMinuteUTC;
-      const endMinutes = endHourUTC * 60 + endMinuteUTC;
+      const startMinutes = startHour * 60 + startMinute;
+      const endMinutes = endHour * 60 + endMinute;
       
       let currentMinutes = startMinutes;
       
@@ -143,7 +189,7 @@ export default function AppointmentsScreen() {
     });
 
     setTimeSlots(slots);
-  }, [workingHours, selectedDate, appointments]);
+  }, [workingHours, selectedDate, appointments, barberProfile]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -189,17 +235,22 @@ export default function AppointmentsScreen() {
           onPress: async () => {
             try {
               setActionLoading(true);
-              console.log('Canceling appointment:', appointmentId);
-              console.log('Using credentials:', credentials);
-              const updated = await cancelAppointment(credentials, appointmentId);
-              console.log('Appointment canceled:', updated);
-              setAppointments(prev =>
-                prev.map(apt => (apt.id === appointmentId ? updated : apt))
-              );
+              console.log('Canceling and deleting appointment:', appointmentId);
+              
+              // First cancel the appointment
+              await cancelAppointment(credentials, appointmentId);
+              console.log('Appointment canceled');
+              
+              // Then delete it from database
+              await deleteAppointment(credentials, appointmentId);
+              console.log('Appointment deleted');
+              
+              // Remove from local state
+              setAppointments(prev => prev.filter(apt => apt.id !== appointmentId));
               setSelectedAppointment(null);
-              Alert.alert('Uspeh', 'Termin je otkazan');
+              Alert.alert('Uspeh', 'Termin je otkazan i obrisan');
             } catch (error: any) {
-              console.error('Error canceling appointment:', error);
+              console.error('Error canceling/deleting appointment:', error);
               console.error('Error response:', error?.response?.data);
               console.error('Error message:', error?.message);
               Alert.alert('Greška', error?.response?.data?.error || error.message || 'Nije moguće otkazati termin');
@@ -210,6 +261,56 @@ export default function AppointmentsScreen() {
         },
       ]
     );
+  };
+
+  const handleCreateAppointment = async () => {
+    if (!credentials || !selectedTimeSlot || !barberProfile) return;
+    
+    if (!formData.serviceId) {
+      Alert.alert('Greška', 'Morate izabrati uslugu');
+      return;
+    }
+    
+    if (!formData.customerName.trim()) {
+      Alert.alert('Greška', 'Morate uneti ime klijenta');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      
+      // Create start time from selected date and time slot
+      const startAt = new Date(selectedDate);
+      startAt.setHours(selectedTimeSlot.hour, selectedTimeSlot.minute, 0, 0);
+      
+      const newAppointment = await createAppointment(credentials, {
+        salonId: barberProfile.salonId,
+        barberId: barberProfile.id,
+        barberServiceId: formData.serviceId,
+        customerName: formData.customerName.trim(),
+        customerPhone: formData.customerPhone.trim() || undefined,
+        startAt: startAt.toISOString(),
+        notes: formData.notes.trim() || undefined,
+      });
+      
+      // Automatically confirm appointments created by barber
+      const confirmedAppointment = await confirmAppointment(credentials, newAppointment.id);
+      
+      setAppointments(prev => [...prev, confirmedAppointment]);
+      setCreateModalVisible(false);
+      setFormData({ serviceId: '', customerName: '', customerPhone: '', notes: '' });
+      Alert.alert('Uspeh', 'Termin je uspešno kreiran i potvrđen');
+    } catch (error: any) {
+      console.error('Error creating appointment:', error);
+      Alert.alert('Greška', error.message || 'Nije moguće kreirati termin');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openCreateModal = (slot: TimeSlot) => {
+    setSelectedTimeSlot(slot);
+    setCreateModalVisible(true);
   };
 
   const changeDate = (days: number) => {
@@ -267,17 +368,31 @@ export default function AppointmentsScreen() {
 
   const renderTimeSlot = (slot: TimeSlot, index: number) => {
     // Only render empty slots without appointments
+    const isEmpty = !slot.appointment;
+    
     return (
       <View key={slot.time} style={styles.timeSlot}>
         <View style={styles.slotTime}>
           <Text style={styles.slotTimeText}>{slot.time}</Text>
         </View>
-        <View style={styles.slotContent} />
+        {isEmpty ? (
+          <TouchableOpacity
+            style={styles.slotContent}
+            onPress={() => openCreateModal(slot)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.slotEmptyText}>+</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.slotContent} />
+        )}
       </View>
     );
   };
 
   const renderAppointmentBlock = (appointment: Appointment) => {
+    if (!barberProfile) return null;
+    
     const aptStart = new Date(appointment.startAt);
     const aptEnd = new Date(appointment.endAt);
     
@@ -290,7 +405,7 @@ export default function AppointmentsScreen() {
     
     // Calculate how many slots this appointment spans
     const durationMin = appointment.durationMin;
-    const slotsSpanned = Math.ceil(durationMin / 30);
+    const slotsSpanned = Math.ceil(durationMin / barberProfile.slotDurationMinutes);
     
     // Calculate position and height
     const slotHeight = 50;
@@ -300,7 +415,7 @@ export default function AppointmentsScreen() {
     const startTime = formatTime(appointment.startAt);
     const endTime = formatTime(appointment.endAt);
     
-    // If single slot (30 min), use horizontal layout
+    // If single slot, use horizontal layout
     const isSingleSlot = slotsSpanned === 1;
     
     return (
@@ -562,6 +677,122 @@ export default function AppointmentsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Create Appointment Modal */}
+      <Modal
+        visible={createModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          setCreateModalVisible(false);
+          setFormData({ serviceId: '', customerName: '', customerPhone: '', notes: '' });
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Novi termin</Text>
+              <TouchableOpacity 
+                style={styles.closeIcon}
+                onPress={() => {
+                  setCreateModalVisible(false);
+                  setFormData({ serviceId: '', customerName: '', customerPhone: '', notes: '' });
+                }}
+              >
+                <Text style={styles.closeIconText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.formContainer}>
+              {selectedTimeSlot && (
+                <View style={styles.formSection}>
+                  <Text style={styles.formLabel}>Vreme</Text>
+                  <Text style={styles.formValue}>
+                    {selectedTimeSlot.time} - {formatDate(selectedDate)}
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.formSection}>
+                <Text style={styles.formLabel}>Usluga *</Text>
+                <View style={styles.servicesGrid}>
+                  {services.map(service => (
+                    <TouchableOpacity
+                      key={service.id}
+                      style={[
+                        styles.serviceChip,
+                        formData.serviceId === service.id && styles.serviceChipSelected,
+                      ]}
+                      onPress={() => setFormData(prev => ({ ...prev, serviceId: service.id }))}
+                    >
+                      <Text style={[
+                        styles.serviceChipText,
+                        formData.serviceId === service.id && styles.serviceChipTextSelected,
+                      ]}>
+                        {service.name}
+                      </Text>
+                      <Text style={styles.serviceChipPrice}>{service.price} RSD</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.formSection}>
+                <Text style={styles.formLabel}>Ime klijenta *</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={formData.customerName}
+                  onChangeText={(text) => setFormData(prev => ({ ...prev, customerName: text }))}
+                  placeholder="Unesite ime"
+                  placeholderTextColor="rgba(255, 255, 255, 0.3)"
+                />
+              </View>
+
+              <View style={styles.formSection}>
+                <Text style={styles.formLabel}>Telefon</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={formData.customerPhone}
+                  onChangeText={(text) => setFormData(prev => ({ ...prev, customerPhone: text }))}
+                  placeholder="Unesite telefon"
+                  placeholderTextColor="rgba(255, 255, 255, 0.3)"
+                  keyboardType="phone-pad"
+                />
+              </View>
+
+              <View style={styles.formSection}>
+                <Text style={styles.formLabel}>Napomena</Text>
+                <TextInput
+                  style={[styles.textInput, styles.textArea]}
+                  value={formData.notes}
+                  onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
+                  placeholder="Dodatne informacije"
+                  placeholderTextColor="rgba(255, 255, 255, 0.3)"
+                  multiline
+                  numberOfLines={3}
+                />
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.confirmButton]}
+                onPress={handleCreateAppointment}
+                disabled={actionLoading}
+              >
+                {actionLoading ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Text style={styles.actionIcon}>✓</Text>
+                    <Text style={styles.actionButtonText}>Kreiraj</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -663,6 +894,13 @@ const styles = StyleSheet.create({
   slotContent: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  slotEmptyText: {
+    fontSize: 20,
+    color: 'rgba(255, 255, 255, 0.15)',
+    fontWeight: '300',
   },
   appointmentsOverlay: {
     position: 'absolute',
@@ -851,5 +1089,66 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#fff',
+  },
+  formContainer: {
+    maxHeight: 400,
+  },
+  formSection: {
+    marginBottom: theme.spacing(3),
+  },
+  formLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: theme.colors.secondary,
+    marginBottom: theme.spacing(1),
+  },
+  formValue: {
+    fontSize: 15,
+    color: theme.colors.primary,
+    fontWeight: '500',
+  },
+  textInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 10,
+    paddingHorizontal: theme.spacing(3),
+    paddingVertical: theme.spacing(2),
+    fontSize: 15,
+    color: theme.colors.primary,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  servicesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing(2),
+  },
+  serviceChip: {
+    paddingHorizontal: theme.spacing(3),
+    paddingVertical: theme.spacing(2),
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  serviceChipSelected: {
+    backgroundColor: theme.colors.accent,
+    borderColor: theme.colors.accent,
+  },
+  serviceChipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.secondary,
+    marginBottom: theme.spacing(0.5),
+  },
+  serviceChipTextSelected: {
+    color: '#fff',
+  },
+  serviceChipPrice: {
+    fontSize: 12,
+    color: theme.colors.tertiary,
   },
 });

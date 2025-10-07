@@ -40,6 +40,39 @@ function mapBarberService(dto: BarberServiceDto): BarberService {
   };
 }
 
+export interface BarberProfile {
+  id: string;
+  userId: string;
+  salonId: string;
+  displayName: string;
+  active: boolean;
+  slotDurationMinutes: number;
+  createdAt: string;
+}
+
+interface BarberProfileDto {
+  id: string;
+  user_id: string;
+  salon_id: string;
+  display_name: string;
+  active: boolean;
+  slot_duration_minutes: number;
+  created_at: string;
+}
+
+export async function getBarberProfile(auth: AuthCredentials): Promise<BarberProfile> {
+  const data = await request<BarberProfileDto>('/barber/me', { auth });
+  return {
+    id: data.id,
+    userId: data.user_id,
+    salonId: data.salon_id,
+    displayName: data.display_name,
+    active: data.active,
+    slotDurationMinutes: data.slot_duration_minutes,
+    createdAt: data.created_at,
+  };
+}
+
 interface WorkingHourDto {
   id: string;
   barber_id: string;
@@ -365,6 +398,48 @@ export async function cancelAppointment(
   const data = await request<AppointmentDto>(`/barber/appointments/${appointmentId}/cancel`, {
     method: 'POST',
     auth,
+  });
+  return mapAppointment(data);
+}
+
+export async function deleteAppointment(
+  auth: AuthCredentials,
+  appointmentId: string
+): Promise<void> {
+  await request(`/barber/appointments/${appointmentId}`, {
+    method: 'DELETE',
+    auth,
+  });
+}
+
+export interface CreateAppointmentPayload {
+  salonId: string;
+  barberId: string;
+  barberServiceId: string;
+  customerName: string;
+  customerPhone?: string;
+  startAt: string; // ISO 8601 datetime
+  notes?: string;
+}
+
+export async function createAppointment(
+  auth: AuthCredentials,
+  payload: CreateAppointmentPayload
+): Promise<Appointment> {
+  const body = {
+    salon_id: payload.salonId,
+    barber_id: payload.barberId,
+    barber_service_id: payload.barberServiceId,
+    customer_name: payload.customerName,
+    customer_phone: payload.customerPhone || null,
+    start_at: payload.startAt,
+    notes: payload.notes || null,
+  };
+  
+  const data = await request<AppointmentDto>('/public/appointments', {
+    method: 'POST',
+    auth,
+    body,
   });
   return mapAppointment(data);
 }
