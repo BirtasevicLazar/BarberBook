@@ -66,3 +66,22 @@ export interface CreateTimeOffPayload {
 }
 
 export interface UpdateTimeOffPayload extends CreateTimeOffPayload {}
+
+export type AppointmentStatus = 'pending' | 'confirmed' | 'canceled' | 'completed';
+
+export interface Appointment {
+  id: string;
+  salonId: string;
+  barberId: string;
+  barberServiceId: string;
+  serviceName?: string | null;
+  customerName: string;
+  customerPhone?: string | null;
+  price: number;
+  durationMin: number;
+  startAt: string; // ISO 8601 datetime
+  endAt: string;   // ISO 8601 datetime
+  status: AppointmentStatus;
+  notes?: string | null;
+  createdAt: string;
+}

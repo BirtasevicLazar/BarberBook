@@ -101,8 +101,9 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 				barbersOnly.POST("/barber/time-off", barberTimeOffHandler.Create)
 				barbersOnly.PUT("/barber/time-off/:timeoff_id", barberTimeOffHandler.Update)
 				barbersOnly.DELETE("/barber/time-off/:timeoff_id", barberTimeOffHandler.Delete)
-				// Barber appointments: list and cancel
+				// Barber appointments: list, confirm, and cancel
 				barbersOnly.GET("/barber/appointments", appointmentsHandler.ListForBarber)
+				barbersOnly.POST("/barber/appointments/:appointment_id/confirm", appointmentsHandler.ConfirmByBarber)
 				barbersOnly.POST("/barber/appointments/:appointment_id/cancel", appointmentsHandler.CancelByBarber)
 			}
 

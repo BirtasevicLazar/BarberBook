@@ -14,6 +14,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import ServicesScreen from './src/screens/ServicesScreen';
 import ScheduleScreen from './src/screens/ScheduleScreen';
 import TimeOffScreen from './src/screens/TimeOffScreen';
+import AppointmentsScreen from './src/screens/AppointmentsScreen';
 import { palette, theme } from './src/styles/theme';
 
 type TabKey = 'services' | 'working-hours' | 'time-off' | 'appointments';
@@ -21,6 +22,7 @@ type TabKey = 'services' | 'working-hours' | 'time-off' | 'appointments';
 const serviceIcon: ImageSourcePropType = require('./src/assets/icons/ServiceIcon.png');
 const workingHoursIcon: ImageSourcePropType = require('./src/assets/icons/WorkingHours.png');
 const daysOffIcon: ImageSourcePropType = require('./src/assets/icons/DaysOff.png');
+const appointmentIcon: ImageSourcePropType = require('./src/assets/icons/AppointmentIcon.png');
 
 type NavDefinition = {
   key: TabKey;
@@ -34,7 +36,7 @@ const NAV_ITEMS: NavDefinition[] = [
   { key: 'services', label: 'Usluge', asset: serviceIcon },
   { key: 'working-hours', label: 'Raspored', asset: workingHoursIcon },
   { key: 'time-off', label: 'Neradni dani', asset: daysOffIcon },
-  { key: 'appointments', label: 'Termini', icon: 'calendar-month-outline', disabled: true },
+  { key: 'appointments', label: 'Termini', asset: appointmentIcon },
 ];
 
 function App() {
@@ -94,12 +96,7 @@ function renderScreen(tab: TabKey) {
     case 'time-off':
       return <TimeOffScreen />;
     case 'appointments':
-      return (
-        <PlaceholderScreen
-          title="Termini"
-          description="Prikaz termina sa vremenskom mrežom stiže uskoro."
-        />
-      );
+      return <AppointmentsScreen />;
     default:
       return null;
   }

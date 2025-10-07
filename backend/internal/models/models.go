@@ -69,6 +69,7 @@ type Appointment struct {
 	SalonID         uuid.UUID `json:"salon_id"`
 	BarberID        uuid.UUID `json:"barber_id"`
 	BarberServiceID uuid.UUID `json:"barber_service_id"`
+	ServiceName     *string   `json:"service_name,omitempty"`
 	CustomerName    string    `json:"customer_name"`
 	CustomerPhone   *string   `json:"customer_phone,omitempty"`
 	Price           float64   `json:"price"`

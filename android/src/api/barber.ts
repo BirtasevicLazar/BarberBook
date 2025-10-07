@@ -12,6 +12,8 @@ import {
   BarberTimeOff,
   CreateTimeOffPayload,
   UpdateTimeOffPayload,
+  Appointment,
+  AppointmentStatus,
 } from '../types/backend';
 
 interface BarberServiceDto {
@@ -287,4 +289,82 @@ export async function deleteTimeOff(auth: AuthCredentials, timeOffId: string): P
     method: 'DELETE',
     auth,
   });
+}
+
+// ===== Appointments API =====
+
+interface AppointmentDto {
+  id: string;
+  salon_id: string;
+  barber_id: string;
+  barber_service_id: string;
+  service_name?: string | null;
+  customer_name: string;
+  customer_phone?: string | null;
+  price: number;
+  duration_min: number;
+  start_at: string;
+  end_at: string;
+  status: string;
+  notes?: string | null;
+  created_at: string;
+}
+
+function mapAppointment(dto: AppointmentDto): Appointment {
+  return {
+    id: dto.id,
+    salonId: dto.salon_id,
+    barberId: dto.barber_id,
+    barberServiceId: dto.barber_service_id,
+    serviceName: dto.service_name ?? null,
+    customerName: dto.customer_name,
+    customerPhone: dto.customer_phone ?? null,
+    price: dto.price,
+    durationMin: dto.duration_min,
+    startAt: dto.start_at,
+    endAt: dto.end_at,
+    status: dto.status as AppointmentStatus,
+    notes: dto.notes ?? null,
+    createdAt: dto.created_at,
+  };
+}
+
+export async function listAppointments(
+  auth: AuthCredentials,
+  params?: { from?: string; to?: string; status?: string }
+): Promise<Appointment[]> {
+  const queryParams = new URLSearchParams();
+  if (params?.from) queryParams.append('from', params.from);
+  if (params?.to) queryParams.append('to', params.to);
+  if (params?.status) queryParams.append('status', params.status);
+  
+  const path = `/barber/appointments${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const data = await request<AppointmentDto[] | null>(path, { auth });
+  
+  if (!data || !Array.isArray(data)) {
+    return [];
+  }
+  return data.map(mapAppointment);
+}
+
+export async function confirmAppointment(
+  auth: AuthCredentials,
+  appointmentId: string
+): Promise<Appointment> {
+  const data = await request<AppointmentDto>(`/barber/appointments/${appointmentId}/confirm`, {
+    method: 'POST',
+    auth,
+  });
+  return mapAppointment(data);
+}
+
+export async function cancelAppointment(
+  auth: AuthCredentials,
+  appointmentId: string
+): Promise<Appointment> {
+  const data = await request<AppointmentDto>(`/barber/appointments/${appointmentId}/cancel`, {
+    method: 'POST',
+    auth,
+  });
+  return mapAppointment(data);
 }

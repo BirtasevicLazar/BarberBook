@@ -126,6 +126,52 @@ func (h *AppointmentsHandler) ListForBarber(c *gin.Context) {
 	c.JSON(http.StatusOK, items)
 }
 
+// Barber-only: confirm appointment
+func (h *AppointmentsHandler) ConfirmByBarber(c *gin.Context) {
+	uidVal, ok := c.Get("user_id")
+	if !ok {
+		Unauthorized(c, "missing_token", "authorization required")
+		return
+	}
+	uidStr, ok := uidVal.(string)
+	if !ok {
+		Unauthorized(c, "invalid_token", "invalid token")
+		return
+	}
+	userID, err := uuid.Parse(uidStr)
+	if err != nil {
+		Unauthorized(c, "invalid_token", "invalid token")
+		return
+	}
+	b, err := h.barbersSvc.GetBarberByUser(c.Request.Context(), userID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			NotFound(c, "barber_not_found", "barber profile not found")
+			return
+		}
+		ServerError(c, "barber_lookup_failed", err.Error())
+		return
+	}
+
+	apptID, err := uuid.Parse(c.Param("appointment_id"))
+	if err != nil {
+		BadRequest(c, "invalid_appointment_id", "invalid appointment_id")
+		return
+	}
+	c.Writer.Header().Set("X-Debug-Barber-ID", b.ID.String())
+	c.Writer.Header().Set("X-Debug-Appointment-ID", apptID.String())
+	a, err := h.svc.ConfirmByBarber(c.Request.Context(), b.ID, apptID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			NotFound(c, "appointment_not_found", "appointment not found, not yours, or not pending")
+			return
+		}
+		ServerError(c, "confirm_failed", err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, a)
+}
+
 // Barber-only: cancel appointment
 func (h *AppointmentsHandler) CancelByBarber(c *gin.Context) {
 	uidVal, ok := c.Get("user_id")

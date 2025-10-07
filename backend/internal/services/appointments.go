@@ -69,25 +69,28 @@ type ListBarberAppointmentsInput struct {
 
 func (s *AppointmentsService) ListForBarber(ctx context.Context, in ListBarberAppointmentsInput) ([]models.Appointment, error) {
 	// Simple dynamic filter build
-	query := `SELECT id, salon_id, barber_id, barber_service_id, customer_name, customer_phone, price, duration_min, start_at, end_at, status, notes, created_at FROM appointments WHERE barber_id=$1`
+	query := `SELECT a.id, a.salon_id, a.barber_id, a.barber_service_id, bs.name as service_name, a.customer_name, a.customer_phone, a.price, a.duration_min, a.start_at, a.end_at, a.status, a.notes, a.created_at 
+	          FROM appointments a 
+	          LEFT JOIN barber_services bs ON a.barber_service_id = bs.id 
+	          WHERE a.barber_id=$1`
 	args := []any{in.BarberID}
 	idx := 2
 	if in.From != nil {
-		query += " AND start_at >= $" + strconv.Itoa(idx)
+		query += " AND a.start_at >= $" + strconv.Itoa(idx)
 		args = append(args, *in.From)
 		idx++
 	}
 	if in.To != nil {
-		query += " AND start_at <= $" + strconv.Itoa(idx)
+		query += " AND a.start_at <= $" + strconv.Itoa(idx)
 		args = append(args, *in.To)
 		idx++
 	}
 	if in.Status != nil {
-		query += " AND status = $" + strconv.Itoa(idx)
+		query += " AND a.status = $" + strconv.Itoa(idx)
 		args = append(args, *in.Status)
 		idx++
 	}
-	query += " ORDER BY start_at"
+	query += " ORDER BY a.start_at"
 	rows, err := s.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -96,12 +99,67 @@ func (s *AppointmentsService) ListForBarber(ctx context.Context, in ListBarberAp
 	var out []models.Appointment
 	for rows.Next() {
 		var a models.Appointment
-		if err := rows.Scan(&a.ID, &a.SalonID, &a.BarberID, &a.BarberServiceID, &a.CustomerName, &a.CustomerPhone, &a.Price, &a.DurationMin, &a.StartAt, &a.EndAt, &a.Status, &a.Notes, &a.CreatedAt); err != nil {
+		if err := rows.Scan(&a.ID, &a.SalonID, &a.BarberID, &a.BarberServiceID, &a.ServiceName, &a.CustomerName, &a.CustomerPhone, &a.Price, &a.DurationMin, &a.StartAt, &a.EndAt, &a.Status, &a.Notes, &a.CreatedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, a)
 	}
 	return out, rows.Err()
+}
+
+// ConfirmByBarber: barber confirms a pending appointment
+func (s *AppointmentsService) ConfirmByBarber(ctx context.Context, barberID, appointmentID uuid.UUID) (models.Appointment, error) {
+	// First check if appointment exists and get its current status
+	var currentStatus string
+	var currentBarberID uuid.UUID
+	checkErr := s.db.QueryRow(ctx,
+		`SELECT status, barber_id FROM appointments WHERE id=$1`,
+		appointmentID,
+	).Scan(&currentStatus, &currentBarberID)
+
+	if checkErr != nil {
+		if checkErr == pgx.ErrNoRows {
+			return models.Appointment{}, pgx.ErrNoRows // appointment doesn't exist
+		}
+		return models.Appointment{}, checkErr
+	}
+
+	// Check if appointment belongs to this barber
+	if currentBarberID != barberID {
+		return models.Appointment{}, pgx.ErrNoRows // not your appointment
+	}
+
+	// Check if already confirmed
+	if currentStatus == "confirmed" {
+		// If already confirmed, just return it (idempotent)
+		var a models.Appointment
+		err := s.db.QueryRow(ctx,
+			`SELECT id, salon_id, barber_id, barber_service_id, customer_name, customer_phone, price, duration_min, start_at, end_at, status, notes, created_at
+			 FROM appointments WHERE id=$1`,
+			appointmentID,
+		).Scan(&a.ID, &a.SalonID, &a.BarberID, &a.BarberServiceID, &a.CustomerName, &a.CustomerPhone, &a.Price, &a.DurationMin, &a.StartAt, &a.EndAt, &a.Status, &a.Notes, &a.CreatedAt)
+		return a, err
+	}
+
+	// Check if status allows confirmation
+	if currentStatus != "pending" {
+		return models.Appointment{}, pgx.ErrNoRows // can only confirm pending appointments
+	}
+
+	// Now update to confirmed
+	var a models.Appointment
+	err := s.db.QueryRow(ctx,
+		`UPDATE appointments SET status='confirmed' WHERE id=$1 AND barber_id=$2 AND status='pending'
+         RETURNING id, salon_id, barber_id, barber_service_id, customer_name, customer_phone, price, duration_min, start_at, end_at, status, notes, created_at`,
+		appointmentID, barberID,
+	).Scan(&a.ID, &a.SalonID, &a.BarberID, &a.BarberServiceID, &a.CustomerName, &a.CustomerPhone, &a.Price, &a.DurationMin, &a.StartAt, &a.EndAt, &a.Status, &a.Notes, &a.CreatedAt)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return models.Appointment{}, err
+		}
+		return models.Appointment{}, err
+	}
+	return a, nil
 }
 
 // CancelByBarber: only barber can cancel their own appointment

@@ -27,6 +27,7 @@ interface AuthState {
 interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  credentials: { token: string; tokenType: string } | null;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -93,6 +94,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       ...state,
       login,
       logout,
+      credentials: state.token ? { token: state.token, tokenType: state.tokenType } : null,
     }),
     [state, login, logout],
   );
