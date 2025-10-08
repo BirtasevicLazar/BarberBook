@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -14,10 +15,11 @@ import (
 type AppointmentsHandler struct {
 	svc        *services.AppointmentsService
 	barbersSvc *services.BarbersService
+	emailSvc   *services.EmailService
 }
 
-func NewAppointmentsHandler(svc *services.AppointmentsService, barbersSvc *services.BarbersService) *AppointmentsHandler {
-	return &AppointmentsHandler{svc: svc, barbersSvc: barbersSvc}
+func NewAppointmentsHandler(svc *services.AppointmentsService, barbersSvc *services.BarbersService, emailSvc *services.EmailService) *AppointmentsHandler {
+	return &AppointmentsHandler{svc: svc, barbersSvc: barbersSvc, emailSvc: emailSvc}
 }
 
 // PublicCreate allows customers to create an appointment; only booking allowed.
@@ -27,6 +29,7 @@ type publicCreateBody struct {
 	BarberServiceID string    `json:"barber_service_id" binding:"required"`
 	CustomerName    string    `json:"customer_name" binding:"required"`
 	CustomerPhone   *string   `json:"customer_phone"`
+	CustomerEmail   *string   `json:"customer_email"`
 	StartAt         time.Time `json:"start_at" binding:"required"`
 	Notes           *string   `json:"notes"`
 }
@@ -58,6 +61,7 @@ func (h *AppointmentsHandler) PublicCreate(c *gin.Context) {
 		BarberServiceID: serviceID,
 		CustomerName:    body.CustomerName,
 		CustomerPhone:   body.CustomerPhone,
+		CustomerEmail:   body.CustomerEmail,
 		StartAt:         body.StartAt,
 		Notes:           body.Notes,
 	})
@@ -169,6 +173,43 @@ func (h *AppointmentsHandler) ConfirmByBarber(c *gin.Context) {
 		ServerError(c, "confirm_failed", err.Error())
 		return
 	}
+
+	// Send confirmation email if customer email is provided
+	if a.CustomerEmail != nil && *a.CustomerEmail != "" {
+		log.Printf("📧 Customer email found: %s - preparing to send confirmation", *a.CustomerEmail)
+
+		// Get full appointment details (salon name, barber name, service name)
+		details, err := h.svc.GetAppointmentDetails(c.Request.Context(), apptID)
+		if err != nil {
+			log.Printf("❌ Failed to get appointment details for email: %v", err)
+			c.Writer.Header().Set("X-Email-Error", "failed to fetch appointment details")
+		} else {
+			log.Printf("✅ Appointment details retrieved: salon=%s, barber=%s, service=%s",
+				details.SalonName, details.BarberName, details.ServiceName)
+
+			// Send email asynchronously to avoid blocking the response
+			go func() {
+				log.Printf("🚀 Starting async email send to: %s", *a.CustomerEmail)
+				emailErr := h.emailSvc.SendAppointmentConfirmation(
+					*a.CustomerEmail,
+					a.CustomerName,
+					details.ServiceName,
+					a.StartAt,
+					a.DurationMin,
+					details.BarberName,
+					details.SalonName,
+				)
+				if emailErr != nil {
+					log.Printf("❌ Email send failed: %v", emailErr)
+				} else {
+					log.Printf("✅ Email sent successfully to: %s", *a.CustomerEmail)
+				}
+			}()
+		}
+	} else {
+		log.Printf("⚠️  No customer email provided - skipping email notification")
+	}
+
 	c.JSON(http.StatusOK, a)
 }
 

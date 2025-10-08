@@ -334,6 +334,7 @@ interface AppointmentDto {
   service_name?: string | null;
   customer_name: string;
   customer_phone?: string | null;
+  customer_email?: string | null;
   price: number;
   duration_min: number;
   start_at: string;
@@ -352,6 +353,7 @@ function mapAppointment(dto: AppointmentDto): Appointment {
     serviceName: dto.service_name ?? null,
     customerName: dto.customer_name,
     customerPhone: dto.customer_phone ?? null,
+    customerEmail: dto.customer_email ?? null,
     price: dto.price,
     durationMin: dto.duration_min,
     startAt: dto.start_at,
@@ -418,6 +420,7 @@ export interface CreateAppointmentPayload {
   barberServiceId: string;
   customerName: string;
   customerPhone?: string;
+  customerEmail?: string;
   startAt: string; // ISO 8601 datetime
   notes?: string;
 }
@@ -432,6 +435,7 @@ export async function createAppointment(
     barber_service_id: payload.barberServiceId,
     customer_name: payload.customerName,
     customer_phone: payload.customerPhone || null,
+    customer_email: payload.customerEmail || null,
     start_at: payload.startAt,
     notes: payload.notes || null,
   };

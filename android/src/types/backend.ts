@@ -77,6 +77,7 @@ export interface Appointment {
   serviceName?: string | null;
   customerName: string;
   customerPhone?: string | null;
+  customerEmail?: string | null;
   price: number;
   durationMin: number;
   startAt: string; // ISO 8601 datetime

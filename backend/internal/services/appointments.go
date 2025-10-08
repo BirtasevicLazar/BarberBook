@@ -27,6 +27,7 @@ type PublicCreateAppointmentInput struct {
 	BarberServiceID uuid.UUID
 	CustomerName    string
 	CustomerPhone   *string
+	CustomerEmail   *string
 	StartAt         time.Time
 	Notes           *string
 }
@@ -38,16 +39,16 @@ func (s *AppointmentsService) PublicCreate(ctx context.Context, in PublicCreateA
 	// price i duration_min izračunavamo iz izabrane usluge na DB strani
 	var appt models.Appointment
 	err := s.db.QueryRow(ctx,
-		`INSERT INTO appointments (salon_id, barber_id, barber_service_id, customer_name, customer_phone, price, duration_min, start_at, status, notes)
+		`INSERT INTO appointments (salon_id, barber_id, barber_service_id, customer_name, customer_phone, customer_email, price, duration_min, start_at, status, notes)
          VALUES (
-           $1,$2,$3,$4,$5,
+           $1,$2,$3,$4,$5,$6,
            (SELECT price::float8 FROM barber_services WHERE id=$3 AND barber_id=$2),
            (SELECT duration_min FROM barber_services WHERE id=$3 AND barber_id=$2),
-           $6, 'pending', $7)
-         RETURNING id, salon_id, barber_id, barber_service_id, customer_name, customer_phone, price, duration_min, start_at, end_at, status, notes, created_at`,
-		in.SalonID, in.BarberID, in.BarberServiceID, in.CustomerName, in.CustomerPhone, in.StartAt, in.Notes,
+           $7, 'pending', $8)
+         RETURNING id, salon_id, barber_id, barber_service_id, customer_name, customer_phone, customer_email, price, duration_min, start_at, end_at, status, notes, created_at`,
+		in.SalonID, in.BarberID, in.BarberServiceID, in.CustomerName, in.CustomerPhone, in.CustomerEmail, in.StartAt, in.Notes,
 	).Scan(
-		&appt.ID, &appt.SalonID, &appt.BarberID, &appt.BarberServiceID, &appt.CustomerName, &appt.CustomerPhone, &appt.Price, &appt.DurationMin, &appt.StartAt, &appt.EndAt, &appt.Status, &appt.Notes, &appt.CreatedAt,
+		&appt.ID, &appt.SalonID, &appt.BarberID, &appt.BarberServiceID, &appt.CustomerName, &appt.CustomerPhone, &appt.CustomerEmail, &appt.Price, &appt.DurationMin, &appt.StartAt, &appt.EndAt, &appt.Status, &appt.Notes, &appt.CreatedAt,
 	)
 	if err != nil {
 		// Unique/overlap or FK failures
@@ -69,7 +70,7 @@ type ListBarberAppointmentsInput struct {
 
 func (s *AppointmentsService) ListForBarber(ctx context.Context, in ListBarberAppointmentsInput) ([]models.Appointment, error) {
 	// Simple dynamic filter build
-	query := `SELECT a.id, a.salon_id, a.barber_id, a.barber_service_id, bs.name as service_name, a.customer_name, a.customer_phone, a.price, a.duration_min, a.start_at, a.end_at, a.status, a.notes, a.created_at 
+	query := `SELECT a.id, a.salon_id, a.barber_id, a.barber_service_id, bs.name as service_name, a.customer_name, a.customer_phone, a.customer_email, a.price, a.duration_min, a.start_at, a.end_at, a.status, a.notes, a.created_at 
 	          FROM appointments a 
 	          LEFT JOIN barber_services bs ON a.barber_service_id = bs.id 
 	          WHERE a.barber_id=$1`
@@ -99,7 +100,7 @@ func (s *AppointmentsService) ListForBarber(ctx context.Context, in ListBarberAp
 	var out []models.Appointment
 	for rows.Next() {
 		var a models.Appointment
-		if err := rows.Scan(&a.ID, &a.SalonID, &a.BarberID, &a.BarberServiceID, &a.ServiceName, &a.CustomerName, &a.CustomerPhone, &a.Price, &a.DurationMin, &a.StartAt, &a.EndAt, &a.Status, &a.Notes, &a.CreatedAt); err != nil {
+		if err := rows.Scan(&a.ID, &a.SalonID, &a.BarberID, &a.BarberServiceID, &a.ServiceName, &a.CustomerName, &a.CustomerPhone, &a.CustomerEmail, &a.Price, &a.DurationMin, &a.StartAt, &a.EndAt, &a.Status, &a.Notes, &a.CreatedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, a)
@@ -150,9 +151,9 @@ func (s *AppointmentsService) ConfirmByBarber(ctx context.Context, barberID, app
 	var a models.Appointment
 	err := s.db.QueryRow(ctx,
 		`UPDATE appointments SET status='confirmed' WHERE id=$1 AND barber_id=$2 AND status='pending'
-         RETURNING id, salon_id, barber_id, barber_service_id, customer_name, customer_phone, price, duration_min, start_at, end_at, status, notes, created_at`,
+         RETURNING id, salon_id, barber_id, barber_service_id, customer_name, customer_phone, customer_email, price, duration_min, start_at, end_at, status, notes, created_at`,
 		appointmentID, barberID,
-	).Scan(&a.ID, &a.SalonID, &a.BarberID, &a.BarberServiceID, &a.CustomerName, &a.CustomerPhone, &a.Price, &a.DurationMin, &a.StartAt, &a.EndAt, &a.Status, &a.Notes, &a.CreatedAt)
+	).Scan(&a.ID, &a.SalonID, &a.BarberID, &a.BarberServiceID, &a.CustomerName, &a.CustomerPhone, &a.CustomerEmail, &a.Price, &a.DurationMin, &a.StartAt, &a.EndAt, &a.Status, &a.Notes, &a.CreatedAt)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return models.Appointment{}, err
@@ -167,9 +168,9 @@ func (s *AppointmentsService) CancelByBarber(ctx context.Context, barberID, appo
 	var a models.Appointment
 	err := s.db.QueryRow(ctx,
 		`UPDATE appointments SET status='canceled' WHERE id=$1 AND barber_id=$2 AND status <> 'canceled'
-         RETURNING id, salon_id, barber_id, barber_service_id, customer_name, customer_phone, price, duration_min, start_at, end_at, status, notes, created_at`,
+         RETURNING id, salon_id, barber_id, barber_service_id, customer_name, customer_phone, customer_email, price, duration_min, start_at, end_at, status, notes, created_at`,
 		appointmentID, barberID,
-	).Scan(&a.ID, &a.SalonID, &a.BarberID, &a.BarberServiceID, &a.CustomerName, &a.CustomerPhone, &a.Price, &a.DurationMin, &a.StartAt, &a.EndAt, &a.Status, &a.Notes, &a.CreatedAt)
+	).Scan(&a.ID, &a.SalonID, &a.BarberID, &a.BarberServiceID, &a.CustomerName, &a.CustomerPhone, &a.CustomerEmail, &a.Price, &a.DurationMin, &a.StartAt, &a.EndAt, &a.Status, &a.Notes, &a.CreatedAt)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return models.Appointment{}, err
@@ -192,6 +193,48 @@ func (s *AppointmentsService) DeleteByBarber(ctx context.Context, barberID, appo
 		return pgx.ErrNoRows
 	}
 	return nil
+}
+
+// AppointmentDetails contains full appointment information including salon and barber details
+type AppointmentDetails struct {
+	Appointment models.Appointment
+	SalonName   string
+	BarberName  string
+	ServiceName string
+}
+
+// GetAppointmentDetails retrieves full appointment details for email sending
+func (s *AppointmentsService) GetAppointmentDetails(ctx context.Context, appointmentID uuid.UUID) (*AppointmentDetails, error) {
+	var details AppointmentDetails
+	var appt models.Appointment
+
+	err := s.db.QueryRow(ctx,
+		`SELECT 
+			a.id, a.salon_id, a.barber_id, a.barber_service_id, 
+			a.customer_name, a.customer_phone, a.customer_email,
+			a.price, a.duration_min, a.start_at, a.end_at, a.status, a.notes, a.created_at,
+			s.name as salon_name,
+			b.display_name as barber_name,
+			bs.name as service_name
+		FROM appointments a
+		JOIN salons s ON a.salon_id = s.id
+		JOIN barbers b ON a.barber_id = b.id
+		JOIN barber_services bs ON a.barber_service_id = bs.id
+		WHERE a.id = $1`,
+		appointmentID,
+	).Scan(
+		&appt.ID, &appt.SalonID, &appt.BarberID, &appt.BarberServiceID,
+		&appt.CustomerName, &appt.CustomerPhone, &appt.CustomerEmail,
+		&appt.Price, &appt.DurationMin, &appt.StartAt, &appt.EndAt, &appt.Status, &appt.Notes, &appt.CreatedAt,
+		&details.SalonName, &details.BarberName, &details.ServiceName,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	details.Appointment = appt
+	return &details, nil
 }
 
 // no helper needed; using strconv.Itoa

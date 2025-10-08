@@ -16,13 +16,26 @@ type DBConfig struct {
 	SSLMode  string
 }
 
+type EmailConfig struct {
+	Host     string
+	Port     string
+	Username string
+	Password string
+}
+
 type Config struct {
 	DB        DBConfig
+	Email     EmailConfig
 	JWTSecret string
 }
 
 func Load() Config {
-	_ = godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		log.Printf("⚠️  Warning: .env file not loaded: %v", err)
+	} else {
+		log.Println("✅ .env file loaded successfully")
+	}
 
 	cfg := Config{
 		DB: DBConfig{
@@ -33,12 +46,26 @@ func Load() Config {
 			Name:     getEnv("DB_NAME", ""),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
+		Email: EmailConfig{
+			Host:     getEnv("MAIL_HOST", "smtp.gmail.com"),
+			Port:     getEnv("MAIL_PORT", "587"),
+			Username: getEnv("MAIL_USERNAME", ""),
+			Password: getEnv("MAIL_PASSWORD", ""),
+		},
 		JWTSecret: getEnv("JWT_SECRET", "dev-secret-change"),
 	}
 
 	if cfg.DB.Host == "" || cfg.DB.User == "" || cfg.DB.Name == "" {
 		log.Println("[WARN] Database configuration is incomplete. Check .env or environment variables.")
 	}
+
+	// Log email configuration (mask password)
+	maskedPassword := ""
+	if len(cfg.Email.Password) > 0 {
+		maskedPassword = "****" + cfg.Email.Password[len(cfg.Email.Password)-4:]
+	}
+	log.Printf("📧 Email Config: Host=%s, Port=%s, Username=%s, Password=%s",
+		cfg.Email.Host, cfg.Email.Port, cfg.Email.Username, maskedPassword)
 
 	return cfg
 }

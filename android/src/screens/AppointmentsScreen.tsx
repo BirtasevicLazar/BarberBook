@@ -57,6 +57,7 @@ export default function AppointmentsScreen() {
     serviceId: '',
     customerName: '',
     customerPhone: '',
+    customerEmail: '',
     notes: '',
   });
 
@@ -292,6 +293,7 @@ export default function AppointmentsScreen() {
         barberServiceId: formData.serviceId,
         customerName: formData.customerName.trim(),
         customerPhone: formData.customerPhone.trim() || undefined,
+        customerEmail: formData.customerEmail.trim() || undefined,
         startAt: startAt.toISOString(),
         notes: formData.notes.trim() || undefined,
       });
@@ -301,7 +303,7 @@ export default function AppointmentsScreen() {
       
       setAppointments(prev => [...prev, confirmedAppointment]);
       setCreateModalVisible(false);
-      setFormData({ serviceId: '', customerName: '', customerPhone: '', notes: '' });
+      setFormData({ serviceId: '', customerName: '', customerPhone: '', customerEmail: '', notes: '' });
       Alert.alert('Uspeh', 'Termin je uspešno kreiran i potvrđen');
     } catch (error: any) {
       console.error('Error creating appointment:', error);
@@ -632,6 +634,16 @@ export default function AppointmentsScreen() {
                       </View>
                     )}
 
+                    {selectedAppointment.customerEmail && (
+                      <View style={styles.detailItem}>
+                        <Text style={styles.detailIcon}>📧</Text>
+                        <View style={styles.detailTextContainer}>
+                          <Text style={styles.detailLabel}>Email</Text>
+                          <Text style={styles.detailValue}>{selectedAppointment.customerEmail}</Text>
+                        </View>
+                      </View>
+                    )}
+
                     <View style={styles.detailItem}>
                       <Text style={styles.detailIcon}>🕐</Text>
                       <View style={styles.detailTextContainer}>
@@ -719,7 +731,7 @@ export default function AppointmentsScreen() {
         animationType="slide"
         onRequestClose={() => {
           setCreateModalVisible(false);
-          setFormData({ serviceId: '', customerName: '', customerPhone: '', notes: '' });
+          setFormData({ serviceId: '', customerName: '', customerPhone: '', customerEmail: '', notes: '' });
         }}
       >
         <View style={styles.modalOverlay}>
@@ -730,7 +742,7 @@ export default function AppointmentsScreen() {
                 style={styles.closeIcon}
                 onPress={() => {
                   setCreateModalVisible(false);
-                  setFormData({ serviceId: '', customerName: '', customerPhone: '', notes: '' });
+                  setFormData({ serviceId: '', customerName: '', customerPhone: '', customerEmail: '', notes: '' });
                 }}
               >
                 <Text style={styles.closeIconText}>✕</Text>
@@ -791,6 +803,19 @@ export default function AppointmentsScreen() {
                   placeholder="Unesite telefon"
                   placeholderTextColor="rgba(255, 255, 255, 0.3)"
                   keyboardType="phone-pad"
+                />
+              </View>
+
+              <View style={styles.formSection}>
+                <Text style={styles.formLabel}>Email (opciono)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={formData.customerEmail}
+                  onChangeText={(text) => setFormData(prev => ({ ...prev, customerEmail: text }))}
+                  placeholder="Unesite email za slanje potvrde"
+                  placeholderTextColor="rgba(255, 255, 255, 0.3)"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                 />
               </View>
 

@@ -56,7 +56,7 @@ export default function BookingWidget({ salonId }) {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [error, setError] = useState('');
   const [booking, setBooking] = useState(false);
-  const [customer, setCustomer] = useState({ name: '', phone: '', notes: '' });
+  const [customer, setCustomer] = useState({ name: '', phone: '', email: '', notes: '' });
   const [success, setSuccess] = useState(null);
   const [step, setStep] = useState(1); // 1-Frizer, 2-Usluga, 3-Datum, 4-Termin, 5-Podaci
 
@@ -140,8 +140,9 @@ export default function BookingWidget({ salonId }) {
   const canBook = useMemo(() => {
     const name = customer.name.trim();
     const phone = customer.phone.trim();
-    return !!(selectedBarber && selectedService && selectedSlot && name && phone);
-  }, [selectedBarber, selectedService, selectedSlot, customer.name, customer.phone]);
+    const email = customer.email.trim();
+    return !!(selectedBarber && selectedService && selectedSlot && name && phone && email);
+  }, [selectedBarber, selectedService, selectedSlot, customer.name, customer.phone, customer.email]);
 
   const activeStep = steps.find((s) => s.id === step);
   const selectedBarberData = useMemo(
@@ -168,7 +169,7 @@ export default function BookingWidget({ salonId }) {
   setSelectedService(null);
   setSlots([]);
   setSelectedSlot(null);
-  setCustomer({ name: '', phone: '', notes: '' });
+  setCustomer({ name: '', phone: '', email: '', notes: '' });
     setStep(2);
   }
 
@@ -194,8 +195,9 @@ export default function BookingWidget({ salonId }) {
     if (!selectedBarber || !selectedService) return;
     const trimmedName = customer.name.trim();
     const trimmedPhone = customer.phone.trim();
-    if (!trimmedName || !trimmedPhone) {
-      setError('Molimo unesite ime i prezime i broj telefona.');
+    const trimmedEmail = customer.email.trim();
+    if (!trimmedName || !trimmedPhone || !trimmedEmail) {
+      setError('Molimo unesite ime i prezime, broj telefona i email adresu.');
       return;
     }
     if (typeof window !== 'undefined') {
@@ -213,6 +215,7 @@ export default function BookingWidget({ salonId }) {
           barber_service_id: selectedService,
           customer_name: trimmedName,
           customer_phone: trimmedPhone,
+          customer_email: trimmedEmail,
           start_at: startAt,
           notes: customer.notes || undefined,
         },
@@ -275,7 +278,7 @@ export default function BookingWidget({ salonId }) {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
                 setSelectedSlot(null);
-                setCustomer({ name: '', phone: '', notes: '' });
+                setCustomer({ name: '', phone: '', email: '', notes: '' });
                 setSuccess(null);
                 setStep(1);
                 setSelectedBarber(null);
@@ -448,6 +451,14 @@ export default function BookingWidget({ salonId }) {
                       placeholder="Unesite broj telefona"
                       value={customer.phone}
                       onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
+                      required
+                    />
+                    <Input
+                      label="Email *"
+                      type="email"
+                      placeholder="Unesite email adresu"
+                      value={customer.email}
+                      onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
                       required
                     />
                     <div>

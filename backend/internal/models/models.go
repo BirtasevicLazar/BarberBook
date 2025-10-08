@@ -72,6 +72,7 @@ type Appointment struct {
 	ServiceName     *string   `json:"service_name,omitempty"`
 	CustomerName    string    `json:"customer_name"`
 	CustomerPhone   *string   `json:"customer_phone,omitempty"`
+	CustomerEmail   *string   `json:"customer_email,omitempty"`
 	Price           float64   `json:"price"`
 	DurationMin     int       `json:"duration_min"`
 	StartAt         time.Time `json:"start_at"`

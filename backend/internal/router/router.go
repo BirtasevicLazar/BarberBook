@@ -56,8 +56,9 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 	barberScheduleHandler := handlers.NewBarberScheduleHandler(barbersSvc, workingHoursSvc, breaksSvc)
 	timeOffSvc := services.NewTimeOffService(db)
 	barberTimeOffHandler := handlers.NewBarberTimeOffHandler(barbersSvc, timeOffSvc)
+	emailSvc := services.NewEmailService(cfg.Email.Host, cfg.Email.Port, cfg.Email.Username, cfg.Email.Password)
 	appointmentsSvc := services.NewAppointmentsService(db)
-	appointmentsHandler := handlers.NewAppointmentsHandler(appointmentsSvc, barbersSvc)
+	appointmentsHandler := handlers.NewAppointmentsHandler(appointmentsSvc, barbersSvc, emailSvc)
 
 	api := r.Group("/api/v1")
 	{
