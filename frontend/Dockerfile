@@ -15,6 +15,14 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Build arguments for Vite environment variables
+ARG VITE_API_BASE_URL=http://localhost:8080
+ARG VITE_APP_NAME=BarberBook
+
+# Set as environment variables during build
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+ENV VITE_APP_NAME=${VITE_APP_NAME}
+
 # Build the application
 RUN npm run build
 
