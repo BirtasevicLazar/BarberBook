@@ -74,9 +74,12 @@ export default function BookingWidget({ salonId }) {
     setError('');
     api(`/public/salons/${salonId}/barbers`)
       .then((data) => {
-        if (mounted) setBarbers(data);
+        if (mounted) setBarbers(Array.isArray(data) ? data : []);
       })
-      .catch((e) => setError(e.message || 'Greška pri učitavanju frizera'));
+      .catch((e) => {
+        setError(e.message || 'Greška pri učitavanju frizera');
+        if (mounted) setBarbers([]);
+      });
     return () => {
       mounted = false;
     };
@@ -93,9 +96,12 @@ export default function BookingWidget({ salonId }) {
     setError('');
     api(`/public/barbers/${selectedBarber}/services`)
       .then((data) => {
-        if (mounted) setServices(data);
+        if (mounted) setServices(Array.isArray(data) ? data : []);
       })
-      .catch((e) => setError(e.message || 'Greška pri učitavanju usluga'));
+      .catch((e) => {
+        setError(e.message || 'Greška pri učitavanju usluga');
+        if (mounted) setServices([]);
+      });
     return () => {
       mounted = false;
     };
@@ -138,19 +144,20 @@ export default function BookingWidget({ salonId }) {
   }, [selectedBarber, selectedService, date]);
 
   const canBook = useMemo(() => {
-    const name = customer.name.trim();
-    const phone = customer.phone.trim();
-    const email = customer.email.trim();
+    if (!customer) return false;
+    const name = customer.name?.trim() || '';
+    const phone = customer.phone?.trim() || '';
+    const email = customer.email?.trim() || '';
     return !!(selectedBarber && selectedService && selectedSlot && name && phone && email);
-  }, [selectedBarber, selectedService, selectedSlot, customer.name, customer.phone, customer.email]);
+  }, [selectedBarber, selectedService, selectedSlot, customer]);
 
-  const activeStep = steps.find((s) => s.id === step);
+  const activeStep = steps?.find((s) => s.id === step);
   const selectedBarberData = useMemo(
-    () => barbers.find((b) => b.id === selectedBarber),
+    () => barbers?.find((b) => b.id === selectedBarber) || null,
     [barbers, selectedBarber]
   );
   const selectedServiceData = useMemo(
-    () => services.find((s) => s.id === selectedService),
+    () => services?.find((s) => s.id === selectedService) || null,
     [services, selectedService]
   );
 
@@ -192,10 +199,10 @@ export default function BookingWidget({ salonId }) {
   }
 
   async function book(startAt) {
-    if (!selectedBarber || !selectedService) return;
-    const trimmedName = customer.name.trim();
-    const trimmedPhone = customer.phone.trim();
-    const trimmedEmail = customer.email.trim();
+    if (!selectedBarber || !selectedService || !customer) return;
+    const trimmedName = customer.name?.trim() || '';
+    const trimmedPhone = customer.phone?.trim() || '';
+    const trimmedEmail = customer.email?.trim() || '';
     if (!trimmedName || !trimmedPhone || !trimmedEmail) {
       setError('Molimo unesite ime i prezime, broj telefona i email adresu.');
       return;
@@ -217,7 +224,7 @@ export default function BookingWidget({ salonId }) {
           customer_phone: trimmedPhone,
           customer_email: trimmedEmail,
           start_at: startAt,
-          notes: customer.notes || undefined,
+          notes: customer?.notes || undefined,
         },
       });
       setSuccess(res);
@@ -299,13 +306,13 @@ export default function BookingWidget({ salonId }) {
         <div className="p-6 sm:p-8 space-y-8">
           <div className="flex flex-col gap-6">
             <div className="space-y-3">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-zinc-400">Korak {step} od {steps.length}</p>
+              <p className="text-[11px] uppercase tracking-[0.2em] text-zinc-400">Korak {step} od {steps?.length || 5}</p>
               <h2 className="text-2xl sm:text-3xl font-semibold text-zinc-900">{activeStep?.name}</h2>
               <p className="text-sm text-zinc-500 max-w-md">{activeStep?.description}</p>
             </div>
 
             <div className="flex items-center gap-2">
-              {steps.map((s) => {
+              {steps?.map((s) => {
                 const done = step > s.id;
                 const active = step === s.id;
                 return (
@@ -331,7 +338,7 @@ export default function BookingWidget({ salonId }) {
               {step === 1 && (
                 <div key="step-1" className="space-y-5">
                   <div className="grid gap-2">
-                    {barbers.map((b) => {
+                    {barbers?.map((b) => {
                       const isActive = selectedBarber === b.id;
                       return (
                         <button
@@ -360,7 +367,7 @@ export default function BookingWidget({ salonId }) {
               {step === 2 && (
                 <div key="step-2" className="space-y-4">
                   <div className="grid gap-3">
-                    {services.map((s) => {
+                    {services?.map((s) => {
                       const isActive = selectedService === s.id;
                       return (
                         <button
@@ -404,7 +411,7 @@ export default function BookingWidget({ salonId }) {
                     <div className="flex items-center justify-center py-10">
                       <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-900" />
                     </div>
-                  ) : slots.length === 0 ? (
+                  ) : !slots || slots.length === 0 ? (
                     <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-8 text-center">
                       {timeOffInfo ? (
                         <div className="space-y-2">
@@ -419,7 +426,7 @@ export default function BookingWidget({ salonId }) {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {slots.map((t) => (
+                      {slots?.map((t) => (
                         <Pill
                           key={`${t.start}-${t.end}`}
                           selected={selectedSlot === t.start}

@@ -129,6 +129,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   barber_service_id    UUID NOT NULL,
   customer_name       TEXT NOT NULL,
   customer_phone      TEXT,
+  customer_email      TEXT,
   price               NUMERIC(10,2) NOT NULL CHECK (price >= 0),
   duration_min        INT NOT NULL CHECK (duration_min > 0),
   start_at            TIMESTAMPTZ NOT NULL,
@@ -245,6 +246,9 @@ CREATE INDEX IF NOT EXISTS idx_appt_barber_status_start
 CREATE INDEX IF NOT EXISTS idx_appt_barber_service
   ON appointments (barber_service_id);
 
+ CREATE INDEX IF NOT EXISTS idx_appointments_customer_email 
+  ON appointments(customer_email);
+ 
 CREATE INDEX IF NOT EXISTS idx_appt_not_canceled
   ON appointments (barber_id, start_at)
   WHERE status <> 'canceled';

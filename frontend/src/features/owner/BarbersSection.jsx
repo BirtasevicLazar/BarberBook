@@ -149,8 +149,8 @@ export default function BarbersSection({ salonId, onCountChange }) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <h3 className="text-lg font-semibold text-zinc-900">Tim frizera</h3>
-              {items.length > 0 && (
+              <h3 className="text-lg font-semibold text-zinc-900">Vaši frizeri</h3>
+              {items && items.length > 0 && (
                 <span className="inline-flex h-6 items-center rounded-full bg-zinc-100 px-3 text-xs font-medium text-zinc-600">
                   {items.length}
                 </span>
@@ -170,7 +170,7 @@ export default function BarbersSection({ salonId, onCountChange }) {
         )}
 
         <div className="grid gap-4">
-          {items.length === 0 ? (
+          {!items || items.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-zinc-300 bg-white p-10 text-center shadow-sm">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
                 +

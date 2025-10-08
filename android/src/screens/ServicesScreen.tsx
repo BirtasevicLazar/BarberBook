@@ -135,11 +135,6 @@ export default function ServicesScreen() {
 
   const renderEmptyState = useCallback(() => (
     <View style={styles.emptyState}>
-      <MaterialCommunityIcons 
-        name="scissors-cutting" 
-        size={64} 
-        color={theme.colors.tertiary} 
-      />
       <Text style={styles.emptyTitle}>Nema usluga</Text>
       <Text style={styles.emptySubtitle}>
         Dodajte prve usluge koje nudite u vašem salonu
