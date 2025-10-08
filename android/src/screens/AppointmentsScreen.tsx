@@ -516,7 +516,7 @@ export default function AppointmentsScreen() {
           onPress={() => changeDate(-1)}
         >
           <Image
-            source={require('../assets/icons/ArrorIcon.png')}
+            source={require('../assets/icons/ArrowIcon.png')}
             style={[styles.arrowIcon, styles.arrowLeft]}
           />
         </TouchableOpacity>
@@ -534,7 +534,7 @@ export default function AppointmentsScreen() {
           onPress={() => changeDate(1)}
         >
           <Image
-            source={require('../assets/icons/ArrorIcon.png')}
+            source={require('../assets/icons/ArrowIcon.png')}
             style={styles.arrowIcon}
           />
         </TouchableOpacity>

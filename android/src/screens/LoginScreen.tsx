@@ -214,15 +214,13 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: theme.radius.continuous.lg,
-    backgroundColor: theme.colors.fill,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: theme.spacing(4),
   },
   icon: {
-    width: 44,
-    height: 44,
-    tintColor: theme.colors.accent,
+    width: 100,
+    height: 100,
   },
   title: {
     ...theme.typography.largeTitle,
