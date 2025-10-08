@@ -151,15 +151,9 @@ func (s *EmailService) SendAppointmentConfirmation(
 }
 
 func (s *EmailService) sendEmail(to, subject, body string, isHTML bool) error {
-	log.Printf("📤 Attempting to send email...")
-	log.Printf("   From: %s", s.from)
-	log.Printf("   To: %s", to)
-	log.Printf("   Subject: %s", subject)
-	log.Printf("   SMTP: %s:%s", s.host, s.port)
 
 	// Setup authentication
 	auth := smtp.PlainAuth("", s.username, s.password, s.host)
-	log.Printf("   Auth configured for user: %s", s.username)
 
 	// Determine content type
 	contentType := "text/plain; charset=UTF-8"
@@ -181,7 +175,6 @@ func (s *EmailService) sendEmail(to, subject, body string, isHTML bool) error {
 
 	// Send email
 	addr := fmt.Sprintf("%s:%s", s.host, s.port)
-	log.Printf("   Connecting to SMTP server: %s", addr)
 
 	err := smtp.SendMail(addr, auth, s.from, []string{to}, msg)
 	if err != nil {
