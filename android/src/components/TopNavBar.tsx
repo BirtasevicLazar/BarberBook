@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../styles/theme';
 
 const menuIcon: ImageSourcePropType = require('../assets/icons/Menu.png');
+const logoutIcon: ImageSourcePropType = require('../assets/icons/Logout.png');
 
 export interface NavItem {
   key: string;
@@ -248,10 +249,10 @@ export default function TopNavBar({ navItems, activeItem, onItemPress, onLogout 
                   accessibilityRole="button"
                   accessibilityLabel="Odjavi se"
                 >
-                  <MaterialCommunityIcons
-                    name="logout"
-                    size={theme.typography.headline.fontSize}
-                    color={theme.colors.danger}
+                  <Image
+                    source={logoutIcon}
+                    style={styles.logoutIcon}
+                    resizeMode="contain"
                   />
                   <Text style={styles.logoutText}>Odjavi se</Text>
                 </TouchableOpacity>
@@ -398,8 +399,6 @@ const styles = StyleSheet.create({
 
   // Logout Section
   logoutSection: {
-    borderTopWidth: 0.5,
-    borderTopColor: theme.colors.border,
     padding: theme.spacing(1),
   },
   logoutButton: {
@@ -409,6 +408,11 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing(2),
     borderRadius: theme.radius.continuous.md,
     backgroundColor: 'rgba(255, 69, 58, 0.1)',
+  },
+  logoutIcon: {
+    width: theme.typography.headline.fontSize,
+    height: theme.typography.headline.fontSize,
+    tintColor: theme.colors.danger,
   },
   logoutText: {
     ...theme.typography.callout,

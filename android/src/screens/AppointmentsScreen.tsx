@@ -11,7 +11,9 @@ import {
   ActivityIndicator,
   Image,
   TextInput,
+  Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { theme } from '../styles/theme';
 import { useAuth } from '../contexts/AuthContext';
 import { 
@@ -37,6 +39,7 @@ interface TimeSlot {
 export default function AppointmentsScreen() {
   const { credentials } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [workingHours, setWorkingHours] = useState<BarberWorkingHour[]>([]);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
@@ -319,13 +322,23 @@ export default function AppointmentsScreen() {
     setSelectedDate(newDate);
   };
 
+  const onDateChange = (event: any, date?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
+
   const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('sr-RS', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
+    const daysOfWeek = ['Ned', 'Pon', 'Uto', 'Sre', 'Čet', 'Pet', 'Sub'];
+    const months = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'avg', 'sep', 'okt', 'nov', 'dec'];
+    
+    const dayName = daysOfWeek[date.getDay()];
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    
+    return `${dayName}, ${day}. ${month} ${year}`;
   };
 
   const formatTime = (isoString: string): string => {
@@ -508,9 +521,13 @@ export default function AppointmentsScreen() {
           />
         </TouchableOpacity>
 
-        <View style={styles.dateDisplay}>
+        <TouchableOpacity 
+          style={styles.dateDisplay}
+          onPress={() => setShowDatePicker(true)}
+        >
           <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
-        </View>
+          <Text style={styles.calendarIcon}>📅</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.navButton}
@@ -522,6 +539,17 @@ export default function AppointmentsScreen() {
           />
         </TouchableOpacity>
       </View>
+
+      {/* Date Picker */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={onDateChange}
+          textColor="#fff"
+        />
+      )}
 
       {/* Appointments List */}
       <ScrollView
@@ -837,12 +865,18 @@ const styles = StyleSheet.create({
   dateDisplay: {
     flex: 1,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: theme.spacing(2),
   },
   dateText: {
     fontSize: 17,
     fontWeight: '600',
     color: '#fff',
     letterSpacing: 0.3,
+  },
+  calendarIcon: {
+    fontSize: 18,
   },
   scrollView: {
     flex: 1,
