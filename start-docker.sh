@@ -36,6 +36,10 @@ echo ""
 
 echo "🧹 Čistim stare kontejnere (ako postoje)..."
 docker-compose down 2>/dev/null || true
+
+# Remove any conflicting containers with barberbook names
+echo "   🗑️  Brišem potencijalno konfliktne kontejnere..."
+docker rm -f barberbook-postgres barberbook-backend barberbook-frontend 2>/dev/null || true
 echo ""
 
 echo "🏗️  Build-ujem Docker image-e..."
