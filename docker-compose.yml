@@ -1,0 +1,103 @@
+services:
+  # ========================================
+  # PostgreSQL Database
+  # ========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: barberbook-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: barberbook_user
+      POSTGRES_PASSWORD: barberbook_local_pass_2025
+      POSTGRES_DB: barberbook_db
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - barberbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U barberbook_user -d barberbook_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================
+  # Backend (Go API)
+  # ========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: barberbook-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: barberbook_user
+      DB_PASSWORD: barberbook_local_pass_2025
+      DB_NAME: barberbook_db
+      DB_SSLMODE: disable
+      
+      # JWT Secret
+      JWT_SECRET: ${JWT_SECRET:-barberbook-jwt-secret-change-in-production}
+      
+      # Email (opciono - ako nije podešeno, email-ovi neće raditi ali app hoće)
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+    ports:
+      - "8080:8080"
+    networks:
+      - barberbook-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ========================================
+  # Frontend (React + Nginx)
+  # ========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:8080
+    container_name: barberbook-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - barberbook-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# ========================================
+# Networks
+# ========================================
+networks:
+  barberbook-network:
+    driver: bridge
+
+# ========================================
+# Volumes (trajno skladište)
+# ========================================
+volumes:
+  postgres_data:
+    driver: local

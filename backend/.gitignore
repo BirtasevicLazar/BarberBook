@@ -1,1 +1,41 @@
+# Environment variables
 .env
+.env.local
+.env.*.local
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+main
+barberbook-server
+cmd/migrate/migrate
+
+# Test binaries
+*.test
+
+# Build artifacts
+bin/
+dist/
+tmp/
+
+# Vendor
+vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Go workspace
+go.work
+go.work.sum

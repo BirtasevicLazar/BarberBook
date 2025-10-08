@@ -1,0 +1,27 @@
+# Ignore vendor dependencies
+vendor/
+
+# Ignore binaries
+*.exe
+*.dll
+*.so
+*.dylib
+main
+barberbook-server
+
+# Ignore test cache
+*.test
+
+# Ignore build artifacts
+bin/
+dist/
+
+# Ignore environment files
+.env
+.env.local
+
+# Ignore OS files
+.DS_Store
+
+# Ignore logs
+*.log
