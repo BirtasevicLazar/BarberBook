@@ -25,19 +25,14 @@ fi
 echo "✅ Docker je pokrenut"
 echo ""
 
-# Check if .env exists
-if [ ! -f .env ]; then
-    echo "⚠️  .env fajl ne postoji - kreiram iz template-a..."
-    cp .env.example .env
-    echo "✅ .env fajl kreiran"
-    echo ""
-    echo "📝 NAPOMENA: Uredi .env i dodaj svoje SMTP kredencijale:"
-    echo "   MAIL_USERNAME=tvoj-email@gmail.com"
-    echo "   MAIL_PASSWORD=app-password"
-    echo ""
-    echo "Za nastavak pritisni ENTER (ili Ctrl+C za prekid)..."
-    read
+# Setup environment files from examples
+echo "🔧 Provera environment fajlova..."
+if [ ! -f "backend/.env" ] || [ ! -f "frontend/.env.local" ]; then
+    ./setup-env.sh
+else
+    echo "   ✅ Environment fajlovi postoje"
 fi
+echo ""
 
 echo "🧹 Čistim stare kontejnere (ako postoje)..."
 docker-compose down 2>/dev/null || true

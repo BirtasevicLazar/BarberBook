@@ -3,6 +3,11 @@
 .env.local
 .env.*.local
 
+# But keep example templates
+!.env.example
+!backend/.env.example
+!frontend/.env.local.example
+
 # Ignore Docker volumes data (if mounted locally)
 /postgres_data/
 /backend_logs/

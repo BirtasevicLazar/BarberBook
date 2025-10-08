@@ -11,6 +11,8 @@
 
 ✅ **Gotovo!** Otvori http://localhost u browser-u.
 
+**Napomena:** Script automatski kreira `backend/.env` i `frontend/.env.local` iz template fajlova koji već imaju tvoje SMTP kredencijale!
+
 ---
 
 ## Za DRUGI računar (npr. kolega, drugi laptop):
@@ -31,6 +33,8 @@ cd BarberBook
 ```
 
 ✅ **Radi!** http://localhost
+
+**To je SVE!** Ne treba ručno kreirati `.env` fajlove - sve je automatski!
 
 ---
 

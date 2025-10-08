@@ -23,33 +23,48 @@ git clone https://github.com/BirtasevicLazar/BarberBook.git
 cd BarberBook
 ```
 
-### 2. (Opciono) Podesi email notifikacije
-
-Ako želiš da aplikacija šalje email notifikacije za termine:
+### 2. Pokreni sa Docker-om
 
 ```bash
-cp .env.example .env
-nano .env  # ili bilo koji editor
+./start-docker.sh
 ```
 
-Popuni samo email kredencijale (ostalo ostavi kako jeste):
+**To je SVE!** Aplikacija automatski:
+- ✅ Kreira `backend/.env` i `frontend/.env.local` iz template-a
+- ✅ Pokreće PostgreSQL sa automatskim kredencijalima
+- ✅ Build-uje backend i frontend
+- ✅ Izvršava database migracije
+- ✅ Pokreće sve servise
 
+---
+
+## 🔧 Database Credentials - Lokalno vs Docker
+
+### Za **Docker** (automatski):
+```yaml
+DB_HOST: postgres             # Docker internal hostname
+DB_USER: barberbook_user
+DB_PASSWORD: barberbook_pass_2025
+DB_NAME: barberbook_db
+```
+Docker **automatski kreira** ove kredencijale - ne treba ništa menjati!
+
+### Za **lokalni development** (bez Docker-a):
 ```env
-MAIL_USERNAME=tvoj-email@gmail.com
-MAIL_PASSWORD=tvoj-app-password
+DB_HOST=localhost
+DB_USER=postgres              # PostgreSQL default user
+DB_PASSWORD=postgres          # PostgreSQL default password
+DB_NAME=barberbook_db
 ```
+Ovi kredencijali rade na **svakom računaru** gde je PostgreSQL instaliran sa default podešavanjima.
 
-> **Napomena za Gmail**: Koristi [App Password](https://myaccount.google.com/apppasswords), ne glavni password!
+---
 
-**Ako preskoči ovaj korak**, aplikacija će normalno raditi, ali email-ovi neće biti poslati.
+---
 
-### 3. Pokreni sve sa Docker-om
+## ✅ Gotovo!
 
-```bash
-docker-compose up -d
-```
-
-✅ **Gotovo!** Aplikacija je dostupna na:
+Aplikacija je dostupna na:
 
 - **Frontend**: http://localhost
 - **Backend API**: http://localhost:8080

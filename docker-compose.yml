@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: barberbook_user
-      POSTGRES_PASSWORD: barberbook_local_pass_2025
+      POSTGRES_PASSWORD: barberbook_pass_2025
       POSTGRES_DB: barberbook_db
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
@@ -36,22 +36,19 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      # Database
+      # Database (Docker internal)
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: barberbook_user
-      DB_PASSWORD: barberbook_local_pass_2025
+      DB_PASSWORD: barberbook_pass_2025
       DB_NAME: barberbook_db
       DB_SSLMODE: disable
       
-      # JWT Secret
-      JWT_SECRET: ${JWT_SECRET:-barberbook-jwt-secret-change-in-production}
-      
-      # Email (opciono - ako nije podešeno, email-ovi neće raditi ali app hoće)
-      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
-      MAIL_PORT: ${MAIL_PORT:-587}
-      MAIL_USERNAME: ${MAIL_USERNAME:-}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      # Email / SMTP (tvoji pravi kredencijali)
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: lazar.birtasevic1@gmail.com
+      MAIL_PASSWORD: dxwrtlynackrjgzb
     ports:
       - "8080:8080"
     networks:

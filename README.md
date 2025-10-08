@@ -41,7 +41,7 @@ Kompletan sistem za rezervaciju termina u frizerskim salonima.
 
 **Najbrži način** da pokreneš kompletan projekat (baza + backend + frontend):
 
-### Option 1: Automatski script (preporučeno)
+### Automatski script (preporučeno)
 
 ```bash
 git clone https://github.com/BirtasevicLazar/BarberBook.git
@@ -49,19 +49,29 @@ cd BarberBook
 ./start-docker.sh
 ```
 
-### Option 2: Ručno
+**To je SVE!** Script automatski:
+- ✅ Kreira `backend/.env` iz `backend/.env.example` (sa tvojim SMTP kredencijalima)
+- ✅ Kreira `frontend/.env.local` iz `frontend/.env.local.example`
+- ✅ Build-uje Docker image-e
+- ✅ Pokreće PostgreSQL, Backend, Frontend
+- ✅ Automatski izvršava database migracije
+
+✅ Aplikacija je dostupna na:
+- **Frontend**: http://localhost
+- **Backend API**: http://localhost:8080
+
+### Ručno pokretanje
 
 ```bash
 git clone https://github.com/BirtasevicLazar/BarberBook.git
 cd BarberBook
 
-# Pokreni Docker Desktop prvo!
+# Kreiraj .env fajlove iz template-a
+./setup-env.sh
+
+# Pokreni Docker
 docker-compose up -d
 ```
-
-✅ Gotovo! Aplikacija je dostupna na:
-- **Frontend**: http://localhost
-- **Backend API**: http://localhost:8080
 
 ### Korisni script-ovi
 
@@ -70,6 +80,7 @@ docker-compose up -d
 ./stop-docker.sh     # Zaustavi sve
 ./logs-docker.sh     # Prati logove (svih servisa)
 ./logs-docker.sh backend  # Samo backend logovi
+./setup-env.sh       # Kreiraj .env fajlove iz template-a
 ```
 
 📖 **Detaljno uputstvo**: [README-DOCKER.md](README-DOCKER.md)
@@ -83,6 +94,21 @@ docker-compose up -d
 - **Go 1.25+**
 - **Node.js 20+**
 - **PostgreSQL 16+**
+
+### PostgreSQL Setup
+
+Ako nemaš PostgreSQL user-a `postgres`, kreiraj ga:
+
+```bash
+# macOS (Homebrew PostgreSQL)
+psql postgres
+CREATE USER postgres WITH PASSWORD 'postgres' SUPERUSER;
+CREATE DATABASE barberbook_db OWNER postgres;
+\q
+
+# Ili koristi svog postojećeg user-a:
+# Uredi backend/.env i promeni DB_USER i DB_PASSWORD na svoje kredencijale
+```
 
 ### Backend
 
@@ -195,34 +221,58 @@ Migracije: [backend/migrations/](backend/migrations/)
 
 ## 🔐 Environment Variables
 
-### Backend
+### Struktura:
+
+```
+BarberBook/
+├── backend/
+│   ├── .env              # ← Lokalno (NE IDE NA GIT!)
+│   └── .env.example      # ← Template (ide na Git)
+├── frontend/
+│   ├── .env.local        # ← Lokalno (NE IDE NA GIT!)
+│   └── .env.local.example # ← Template (ide na Git)
+```
+
+### Backend (`backend/.env`)
 
 ```env
-# Database
+# Database (PostgreSQL default credentials)
 DB_HOST=localhost
 DB_PORT=5432
-DB_USER=barberbook_user
-DB_PASSWORD=your_password
+DB_USER=postgres
+DB_PASSWORD=postgres
 DB_NAME=barberbook_db
 DB_SSLMODE=disable
-
-# JWT
-JWT_SECRET=your-secret-key
 
 # Email
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
+MAIL_USERNAME=lazar.birtasevic1@gmail.com
+MAIL_PASSWORD=dxwrtlynackrjgzb
 ```
 
-### Frontend
+> **Napomena:** 
+> - Database kredencijali su PostgreSQL default (`postgres`/`postgres`) - rade na svakom računaru
+> - JWT_SECRET nije potreban - backend koristi default vrednost `dev-secret-change`
+
+### Frontend (`frontend/.env.local`)
 
 ```env
 VITE_API_BASE_URL=http://localhost:8080
+VITE_APP_NAME=BarberBook
 ```
 
-Template: [.env.example](.env.example)
+### Docker Development
+
+Za Docker, **NE TREBA ručno kreirati `.env` fajlove!**
+
+`./start-docker.sh` automatski kreira:
+- `backend/.env` iz `backend/.env.example`
+- `frontend/.env.local` iz `frontend/.env.local.example`
+
+Docker koristi **svoje environment varijable** definisane u `docker-compose.yml`:
+- Database: `postgres` (Docker internal hostname)
+- SMTP: Tvoji pravi kredencijali (hardcoded u `docker-compose.yml`)
 
 ---
 
@@ -246,40 +296,42 @@ npm run test
 
 ## 📝 Git Workflow
 
-### Što NE sme na Git:
+### ❌ Što NE sme na Git:
 
-❌ `.env` fajlovi sa secrets (već u `.gitignore`)  
-❌ `node_modules/` (već ignorirano)  
-❌ `dist/` i `build/` folderi  
-❌ PostgreSQL data folderi  
-❌ Docker volumes
+- `backend/.env` - **SECRETS!**
+- `frontend/.env.local` - **SECRETS!**
+- `node_modules/`
+- `dist/` i `build/`
+- PostgreSQL data folderi
+- Docker volumes
 
 ### ✅ Safe za Git (već uključeno):
 
-- ✅ `.env.example` (template bez secrets)
-- ✅ `.gitignore` (konfigurisano za sve foldere)
-- ✅ `.gitattributes` (line endings za shell scriptove)
-- ✅ Source code
-- ✅ Migracije
-- ✅ Dokumentacija
-- ✅ Dockerfiles i docker-compose.yml
-- ✅ Helper scriptovi (`start-docker.sh`, itd.)
+- `backend/.env.example` - Template sa tvojim pravim kredencijalima
+- `frontend/.env.local.example` - Template
+- `.gitignore` (konfigurisano za sve foldere)
+- `.gitattributes` (line endings za shell scriptove)
+- Source code
+- Migracije
+- Dokumentacija
+- Dockerfiles i docker-compose.yml
+- Helper scriptovi (`start-docker.sh`, itd.)
 
-### 🔒 Sigurnost:
+### 🔒 Kako radi:
 
-**`.env` fajl NIKAD ne ide na Git!** On sadrži:
-- Database passwords
-- JWT secret
-- SMTP credentials
-
-Umesto toga, na Git ide **`.env.example`** koji pokazuje format, ali bez pravih vrednosti.
+**Template fajlovi (`*.example`) JESU na Git-u** i sadrže tvoje prave kredencijale.  
+**Pravi `.env` fajlovi NISU na Git-u** (u `.gitignore`).
 
 **Na drugom računaru:**
 ```bash
 git clone https://github.com/BirtasevicLazar/BarberBook.git
 cd BarberBook
-cp .env.example .env  # ← Ručno kopiraj
-nano .env             # ← Unesi prave vrednosti
+./start-docker.sh  # ← Automatski kreira .env iz .example
+```
+
+ili ručno:
+```bash
+./setup-env.sh  # Kreira backend/.env i frontend/.env.local
 ```
 
 ---

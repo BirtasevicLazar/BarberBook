@@ -64,7 +64,24 @@ cd BarberBook
 # 2. Proveri da .env NE POSTOJI
 ls -la | grep "\.env$"
 # ↑ Treba da ne prikaže ništa (samo .env.example)
+# Na drugom računaru:
 
+# 1. Instaliraj Docker Desktop
+# https://www.docker.com/products/docker-desktop/
+
+# 2. Clone repo
+git clone https://github.com/BirtasevicLazar/BarberBook.git
+cd BarberBook
+
+# 3. Kopiraj .env
+cp .env.example .env
+nano .env  # ← Unesi SMTP kredencijale
+
+# 4. Pokreni
+./start-docker.sh
+
+# 5. Otvori browser
+http://localhost
 # 3. Kopiraj .env.example u .env
 cp .env.example .env
 
