@@ -806,18 +806,6 @@ export default function AppointmentsScreen() {
                 />
               </View>
 
-              <View style={styles.formSection}>
-                <Text style={styles.formLabel}>Email (opciono)</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={formData.customerEmail}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, customerEmail: text }))}
-                  placeholder="Unesite email za slanje potvrde"
-                  placeholderTextColor="rgba(255, 255, 255, 0.3)"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
 
               <View style={styles.formSection}>
                 <Text style={styles.formLabel}>Napomena</Text>

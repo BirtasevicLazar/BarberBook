@@ -254,6 +254,40 @@ func (h *AppointmentsHandler) CancelByBarber(c *gin.Context) {
 		ServerError(c, "cancel_failed", err.Error())
 		return
 	}
+
+	// Send cancellation email if customer email is provided
+	if a.CustomerEmail != nil && *a.CustomerEmail != "" {
+		log.Printf("📧 Customer email found: %s - preparing to send cancellation notification", *a.CustomerEmail)
+
+		// Get full appointment details (salon name, barber name, service name)
+		details, err := h.svc.GetAppointmentDetails(c.Request.Context(), apptID)
+		if err != nil {
+			log.Printf("❌ Failed to get appointment details for cancellation email: %v", err)
+		} else {
+			log.Printf("✅ Appointment details retrieved for cancellation: salon=%s, barber=%s, service=%s",
+				details.SalonName, details.BarberName, details.ServiceName)
+
+			// Send email asynchronously to avoid blocking the response
+			go func() {
+				log.Printf("🚀 Starting async cancellation email send to: %s", *a.CustomerEmail)
+				emailErr := h.emailSvc.SendAppointmentCancellation(
+					*a.CustomerEmail,
+					a.CustomerName,
+					details.ServiceName,
+					a.StartAt,
+					details.SalonName,
+				)
+				if emailErr != nil {
+					log.Printf("❌ Cancellation email send failed: %v", emailErr)
+				} else {
+					log.Printf("✅ Cancellation email sent successfully to: %s", *a.CustomerEmail)
+				}
+			}()
+		}
+	} else {
+		log.Printf("⚠️  No customer email provided - skipping cancellation notification")
+	}
+
 	c.JSON(http.StatusOK, a)
 }
 
