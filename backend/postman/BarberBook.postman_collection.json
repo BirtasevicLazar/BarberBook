@@ -1,53 +1,53 @@
 {
   "info": {
-    "name": "BarberBook API (SRB)",
-    "description": "Kolekcija svih API ruta za BarberBook. Organizovano po folderima (Public, Auth, Owner, Barber). Koristi kolekcione promenljive za baseUrl, tokene i ID-jeve. Importuj u Postman i prati tok od kreiranja salona do rezervacije i upravljanja.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "name": "BarberBook Backend API",
+    "description": "Kompletna kolekcija svih API ruta za BarberBook. Organizovano po folderima (Public, Auth, Owner, Barber). Koristi kolekcione promenljive za baseUrl, tokene i ID-jeve. Importuj u Postman i prati tok od kreiranja salona do rezervacije i upravljanja.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "barberbook-api-v1",
+    "version": "1.0.0"
   },
   "variable": [
-    {"key": "baseUrl", "value": "http://localhost:8080/api/v1"},
-    {"key": "owner_email", "value": "owner@example.com"},
-    {"key": "owner_password", "value": "ownerpass"},
-    {"key": "barber_email", "value": "barber@example.com"},
-    {"key": "barber_password", "value": "barberpass"},
-    {"key": "owner_token", "value": ""},
-    {"key": "barber_token", "value": ""},
-    {"key": "salon_id", "value": ""},
-    {"key": "barber_id", "value": ""},
-    {"key": "barber_service_id", "value": ""},
-    {"key": "appointment_id", "value": ""},
-    {"key": "hour_id", "value": ""},
-    {"key": "break_id", "value": ""},
-    {"key": "timeoff_id", "value": ""},
-    {"key": "date", "value": "2025-10-02"},
-    {"key": "from", "value": "2025-10-01T00:00:00Z"},
-    {"key": "to", "value": "2025-10-03T00:00:00Z"},
-    {"key": "status", "value": ""}
+    {"key": "baseUrl", "value": "http://localhost:8080/api/v1", "type": "string"},
+    {"key": "owner_email", "value": "owner@example.com", "type": "string"},
+    {"key": "owner_password", "value": "ownerpass", "type": "string"},
+    {"key": "barber_email", "value": "barber@example.com", "type": "string"},
+    {"key": "barber_password", "value": "barberpass", "type": "string"},
+    {"key": "owner_token", "value": "", "type": "string"},
+    {"key": "barber_token", "value": "", "type": "string"},
+    {"key": "salon_id", "value": "", "type": "string"},
+    {"key": "barber_id", "value": "", "type": "string"},
+    {"key": "barber_service_id", "value": "", "type": "string"},
+    {"key": "appointment_id", "value": "", "type": "string"},
+    {"key": "hour_id", "value": "", "type": "string"},
+    {"key": "break_id", "value": "", "type": "string"},
+    {"key": "timeoff_id", "value": "", "type": "string"},
+    {"key": "date", "value": "2025-10-02", "type": "string"},
+    {"key": "from", "value": "2025-10-01T00:00:00Z", "type": "string"},
+    {"key": "to", "value": "2025-10-03T00:00:00Z", "type": "string"},
+    {"key": "status", "value": "", "type": "string"}
   ],
   "item": [
     {
-      "name": "Public",
+      "name": "🌐 Public",
       "item": [
         {
-          "name": "Health",
+          "name": "Health Check",
           "request": {
             "method": "GET",
-            "url": {"raw": "http://localhost:8080/health"},
-            "description": "Brzi health check servera."
-          }
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["health"]
+            },
+            "description": "Brzi health check servera (van /api/v1 scope-a)."
+          },
+          "response": []
         },
         {
-          "name": "Kreiraj salon (kreira i vlasnika)",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "url": {"raw": "{{baseUrl}}/salons", "host": ["{{baseUrl}}"], "path": ["salons"]},
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{owner_email}}\",\n  \"password\": \"{{owner_password}}\",\n  \"full_name\": \"Vlasnik Salona\",\n  \"phone\": \"+38160111222\",\n  \"name\": \"Salon Test\",\n  \"salon_phone\": \"+38160111222\",\n  \"address\": \"Adresa 1, Beograd\",\n  \"timezone\": \"Europe/Belgrade\",\n  \"currency\": \"RSD\"\n}"
-            },
-            "description": "Kreira salon i vlasnika (owner)."
-          },
+          "name": "Kreiraj salon (+ vlasnika)",
           "event": [
             {
               "listen": "test",
@@ -55,201 +55,799 @@
                 "exec": [
                   "let json = {};",
                   "try { json = pm.response.json(); } catch(e){}",
-                  "if (json.salon && json.salon.id) pm.collectionVariables.set('salon_id', json.salon.id);",
-                  "if (json.owner && json.owner.email) pm.collectionVariables.set('owner_email', json.owner.email);"
+                  "",
+                  "if (json.salon && json.salon.id) {",
+                  "    pm.collectionVariables.set('salon_id', json.salon.id);",
+                  "    console.log('✅ Salon ID saved:', json.salon.id);",
+                  "}",
+                  "",
+                  "if (json.owner && json.owner.email) {",
+                  "    pm.collectionVariables.set('owner_email', json.owner.email);",
+                  "    console.log('✅ Owner email saved:', json.owner.email);",
+                  "}"
                 ],
                 "type": "text/javascript"
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{owner_email}}\",\n  \"password\": \"{{owner_password}}\",\n  \"full_name\": \"Vlasnik Salona\",\n  \"phone\": \"+38160111222\",\n  \"name\": \"Salon Test\",\n  \"salon_phone\": \"+38160111222\",\n  \"address\": \"Knez Mihailova 1, Beograd\",\n  \"timezone\": \"Europe/Belgrade\",\n  \"currency\": \"RSD\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/salons",
+              "host": ["{{baseUrl}}"],
+              "path": ["salons"]
+            },
+            "description": "Kreira salon i vlasnika (owner) u jednoj transakciji."
+          },
+          "response": []
         },
         {
-          "name": "Public: Salon (read-only)",
+          "name": "Public: Prikaz salona",
           "request": {
             "method": "GET",
-            "url": {"raw": "{{baseUrl}}/public/salons/{{salon_id}}", "host": ["{{baseUrl}}"], "path": ["public","salons","{{salon_id}}"]},
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/salons/{{salon_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["public", "salons", "{{salon_id}}"]
+            },
             "description": "Javni prikaz salona."
-          }
+          },
+          "response": []
         },
         {
-          "name": "Public: Lista frizera (aktivni)",
+          "name": "Public: Lista frizera",
           "request": {
             "method": "GET",
-            "url": {"raw": "{{baseUrl}}/public/salons/{{salon_id}}/barbers", "host": ["{{baseUrl}}"], "path": ["public","salons","{{salon_id}}","barbers"]},
-            "description": "Lista aktivnih frizera u salonu."
-          }
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/salons/{{salon_id}}/barbers",
+              "host": ["{{baseUrl}}"],
+              "path": ["public", "salons", "{{salon_id}}", "barbers"]
+            },
+            "description": "Lista aktivnih frizera."
+          },
+          "response": []
         },
         {
-          "name": "Public: Lista usluga frizera (aktivne)",
+          "name": "Public: Lista usluga frizera",
           "request": {
             "method": "GET",
-            "url": {"raw": "{{baseUrl}}/public/barbers/{{barber_id}}/services", "host": ["{{baseUrl}}"], "path": ["public","barbers","{{barber_id}}","services"]},
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/barbers/{{barber_id}}/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["public", "barbers", "{{barber_id}}", "services"]
+            },
             "description": "Aktivne usluge frizera."
-          }
+          },
+          "response": []
         },
         {
-          "name": "Public: Availability (slotovi)",
+          "name": "Public: Availability",
           "request": {
             "method": "GET",
+            "header": [],
             "url": {
               "raw": "{{baseUrl}}/public/barbers/{{barber_id}}/services/{{barber_service_id}}/availability?date={{date}}",
               "host": ["{{baseUrl}}"],
-              "path": ["public","barbers","{{barber_id}}","services","{{barber_service_id}}","availability"],
+              "path": ["public", "barbers", "{{barber_id}}", "services", "{{barber_service_id}}", "availability"],
               "query": [{"key": "date", "value": "{{date}}"}]
             },
-            "description": "Dostupni slotovi za odabrani datum i uslugu."
-          }
+            "description": "Dostupni slotovi."
+          },
+          "response": []
         },
         {
-          "name": "Public: Zakazivanje (customer create)",
+          "name": "Public: Zakazivanje",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch(e){}",
+                  "if (json.id) {",
+                  "    pm.collectionVariables.set('appointment_id', json.id);",
+                  "    console.log('✅ Appointment ID saved:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{"key": "Content-Type", "value": "application/json"}],
-            "url": {"raw": "{{baseUrl}}/public/appointments", "host": ["{{baseUrl}}"], "path": ["public","appointments"]},
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"salon_id\": \"{{salon_id}}\",\n  \"barber_id\": \"{{barber_id}}\",\n  \"barber_service_id\": \"{{barber_service_id}}\",\n  \"customer_name\": \"Marko Markovic\",\n  \"customer_phone\": \"+381601234567\",\n  \"start_at\": \"2025-10-02T10:00:00Z\",\n  \"notes\": \"krace sa strane\"\n}"
+              "raw": "{\n  \"salon_id\": \"{{salon_id}}\",\n  \"barber_id\": \"{{barber_id}}\",\n  \"barber_service_id\": \"{{barber_service_id}}\",\n  \"customer_name\": \"Marko Marković\",\n  \"customer_phone\": \"+381601234567\",\n  \"customer_email\": \"marko@example.com\",\n  \"start_at\": \"2025-10-02T10:00:00Z\",\n  \"notes\": \"Kraće sa strane\"\n}"
             },
-            "description": "Mušterije mogu samo da zakažu (nema otkazivanja sa njihove strane)."
+            "url": {
+              "raw": "{{baseUrl}}/public/appointments",
+              "host": ["{{baseUrl}}"],
+              "path": ["public", "appointments"]
+            },
+            "description": "Zakazivanje termina. Šalje email ako je customer_email prisutan."
           },
-          "event": [{
-            "listen": "test",
-            "script": {"type": "text/javascript", "exec": [
-              "let json = {}; try{ json = pm.response.json(); }catch(e){}",
-              "if (json.id) pm.collectionVariables.set('appointment_id', json.id);"
-            ]}
-          }]
+          "response": []
         }
-      ]
+      ],
+      "description": "Javni endpoint-i."
     },
     {
-      "name": "Auth",
+      "name": "🔐 Auth",
       "item": [
         {
           "name": "Login (owner)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch(e){}",
+                  "if (json.access_token) {",
+                  "    pm.collectionVariables.set('owner_token', json.access_token);",
+                  "    console.log('✅ Owner token saved');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{"key": "Content-Type", "value": "application/json"}],
-            "url": {"raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"]},
-            "body": {"mode": "raw", "raw": "{\n  \"email\": \"{{owner_email}}\",\n  \"password\": \"{{owner_password}}\"\n}"},
-            "description": "Login za vlasnika (owner)."
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{owner_email}}\",\n  \"password\": \"{{owner_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/owner/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "owner", "login"]
+            },
+            "description": "Login za vlasnika."
           },
-          "event": [{
-            "listen": "test",
-            "script": {"type": "text/javascript", "exec": [
-              "let json={}; try{ json = pm.response.json(); }catch(e){}",
-              "if (json.access_token) pm.collectionVariables.set('owner_token', json.access_token);"
-            ]}
-          }]
+          "response": []
         },
         {
           "name": "Login (barber)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch(e){}",
+                  "if (json.access_token) {",
+                  "    pm.collectionVariables.set('barber_token', json.access_token);",
+                  "    console.log('✅ Barber token saved');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{"key": "Content-Type", "value": "application/json"}],
-            "url": {"raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"]},
-            "body": {"mode": "raw", "raw": "{\n  \"email\": \"{{barber_email}}\",\n  \"password\": \"{{barber_password}}\"\n}"},
-            "description": "Login za frizera (barber)."
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{barber_email}}\",\n  \"password\": \"{{barber_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/barber/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "barber", "login"]
+            },
+            "description": "Login za frizera."
           },
-          "event": [{
-            "listen": "test",
-            "script": {"type": "text/javascript", "exec": [
-              "let json={}; try{ json = pm.response.json(); }catch(e){}",
-              "if (json.access_token) pm.collectionVariables.set('barber_token', json.access_token);"
-            ]}
-          }]
+          "response": []
         }
-      ]
+      ],
+      "description": "Autentifikacija."
     },
     {
-      "name": "Owner (JWT owner)",
+      "name": "👔 Owner (JWT)",
       "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{owner_token}}", "type": "string"}]},
       "item": [
         {
-          "name": "Salon (read private)",
-          "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/salons/{{salon_id}}", "host":["{{baseUrl}}"], "path":["salons","{{salon_id}}"]}}
+          "name": "Owner: Moj salon",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/owner/me/salon",
+              "host": ["{{baseUrl}}"],
+              "path": ["owner", "me", "salon"]
+            },
+            "description": "Owner dobavlja svoj salon iz JWT tokena."
+          },
+          "response": []
         },
         {
-          "name": "Salon (update)",
+          "name": "Salon: Prikaz",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/salons/{{salon_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["salons", "{{salon_id}}"]
+            },
+            "description": "Privatni prikaz salona."
+          },
+          "response": []
+        },
+        {
+          "name": "Salon: Izmena",
           "request": {
             "method": "PUT",
             "header": [{"key": "Content-Type", "value": "application/json"}],
-            "url": {"raw": "{{baseUrl}}/salons/{{salon_id}}", "host":["{{baseUrl}}"], "path":["salons","{{salon_id}}"]},
-            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Salon Test (izmena)\",\n  \"phone\": \"+38160111222\",\n  \"address\": \"Adresa 1, Beograd\",\n  \"timezone\": \"Europe/Belgrade\",\n  \"currency\": \"RSD\"\n}"}
-          }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Salon Test (izmena)\",\n  \"phone\": \"+38160111222\",\n  \"address\": \"Knez Mihailova 5, Beograd\",\n  \"timezone\": \"Europe/Belgrade\",\n  \"currency\": \"RSD\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/salons/{{salon_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["salons", "{{salon_id}}"]
+            },
+            "description": "Izmena salona."
+          },
+          "response": []
         },
         {
-          "name": "Barber (create)",
+          "name": "Barber: Kreiranje",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch(e){}",
+                  "if (json.barber && json.barber.id) {",
+                  "    pm.collectionVariables.set('barber_id', json.barber.id);",
+                  "    console.log('✅ Barber ID saved');",
+                  "}",
+                  "if (json.user && json.user.email) {",
+                  "    pm.collectionVariables.set('barber_email', json.user.email);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{"key": "Content-Type", "value": "application/json"}],
-            "url": {"raw": "{{baseUrl}}/salons/{{salon_id}}/barbers", "host":["{{baseUrl}}"], "path":["salons","{{salon_id}}","barbers"]},
-            "body": {"mode": "raw", "raw": "{\n  \"email\": \"{{barber_email}}\",\n  \"password\": \"{{barber_password}}\",\n  \"full_name\": \"Frizer Frizer\",\n  \"phone\": \"+38160777888\",\n  \"display_name\": \"Frizer A\",\n  \"slot_duration_minutes\": 30\n}"},
-            "description": "Kreira user (barber) i barber red u jednoj transakciji."
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{barber_email}}\",\n  \"password\": \"{{barber_password}}\",\n  \"full_name\": \"Petar Petrović\",\n  \"phone\": \"+38160777888\",\n  \"display_name\": \"Pera Frizer\",\n  \"slot_duration_minutes\": 30\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/salons/{{salon_id}}/barbers",
+              "host": ["{{baseUrl}}"],
+              "path": ["salons", "{{salon_id}}", "barbers"]
+            },
+            "description": "Kreira frizera i user-a."
           },
-          "event": [{
-            "listen": "test",
-            "script": {"type": "text/javascript", "exec": [
-              "let json={}; try{ json = pm.response.json(); }catch(e){}",
-              "if (json.barber && json.barber.id) pm.collectionVariables.set('barber_id', json.barber.id);"
-            ]}
-          }]
+          "response": []
         },
-        {"name": "Barber (list)", "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/salons/{{salon_id}}/barbers", "host":["{{baseUrl}}"], "path":["salons","{{salon_id}}","barbers"]}}},
-        {"name": "Barber (get)", "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/salons/{{salon_id}}/barbers/{{barber_id}}", "host":["{{baseUrl}}"], "path":["salons","{{salon_id}}","barbers","{{barber_id}}"]}}},
-        {"name": "Barber (update)", "request": {"method": "PUT", "header":[{"key":"Content-Type","value":"application/json"}], "url": {"raw": "{{baseUrl}}/salons/{{salon_id}}/barbers/{{barber_id}}", "host":["{{baseUrl}}"], "path":["salons","{{salon_id}}","barbers","{{barber_id}}"]}, "body":{"mode":"raw","raw":"{\n  \"display_name\": \"Frizer A (izmena)\",\n  \"active\": true,\n  \"slot_duration_minutes\": 30\n}"}}},
-        {"name": "Barber (deactivate)", "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/salons/{{salon_id}}/barbers/{{barber_id}}", "host":["{{baseUrl}}"], "path":["salons","{{salon_id}}","barbers","{{barber_id}}"]}}}
-      ]
+        {
+          "name": "Barber: Lista",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/salons/{{salon_id}}/barbers",
+              "host": ["{{baseUrl}}"],
+              "path": ["salons", "{{salon_id}}", "barbers"]
+            },
+            "description": "Lista frizera."
+          },
+          "response": []
+        },
+        {
+          "name": "Barber: Prikaz",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/salons/{{salon_id}}/barbers/{{barber_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["salons", "{{salon_id}}", "barbers", "{{barber_id}}"]
+            },
+            "description": "Detalji frizera."
+          },
+          "response": []
+        },
+        {
+          "name": "Barber: Izmena",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"display_name\": \"Pera Frizer (izmena)\",\n  \"active\": true,\n  \"slot_duration_minutes\": 30\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/salons/{{salon_id}}/barbers/{{barber_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["salons", "{{salon_id}}", "barbers", "{{barber_id}}"]
+            },
+            "description": "Izmena frizera."
+          },
+          "response": []
+        },
+        {
+          "name": "Barber: Deaktivacija",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/salons/{{salon_id}}/barbers/{{barber_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["salons", "{{salon_id}}", "barbers", "{{barber_id}}"]
+            },
+            "description": "Deaktivacija frizera."
+          },
+          "response": []
+        }
+      ],
+      "description": "Owner endpoint-i."
     },
     {
-      "name": "Barber (JWT barber)",
+      "name": "✂️ Barber (JWT)",
       "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{barber_token}}", "type": "string"}]},
       "item": [
-        {"name": "Me", "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/barber/me", "host":["{{baseUrl}}"], "path":["barber","me"]}}, "event":[{"listen":"test","script":{"type":"text/javascript","exec":["let j={};try{j=pm.response.json();}catch(e){}","if (j.id) pm.collectionVariables.set('barber_id', j.id);"]}}]},
         {
-          "name": "Services",
-          "item": [
-            {"name": "List", "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/barber/services", "host":["{{baseUrl}}"], "path":["barber","services"]}}},
-            {"name": "Create", "request": {"method": "POST", "header":[{"key":"Content-Type","value":"application/json"}], "url": {"raw": "{{baseUrl}}/barber/services", "host":["{{baseUrl}}"], "path":["barber","services"]}, "body":{"mode":"raw","raw":"{\n  \"name\": \"Muško šišanje\",\n  \"price\": 1200,\n  \"duration_min\": 30\n}"}}, "event":[{"listen":"test","script":{"type":"text/javascript","exec":["let j={};try{j=pm.response.json();}catch(e){}","if (j.id) pm.collectionVariables.set('barber_service_id', j.id);"]}}]},
-            {"name": "Update", "request": {"method": "PUT", "header":[{"key":"Content-Type","value":"application/json"}], "url": {"raw": "{{baseUrl}}/barber/services/{{barber_service_id}}", "host":["{{baseUrl}}"], "path":["barber","services","{{barber_service_id}}"]}, "body":{"mode":"raw","raw":"{\n  \"name\": \"Muško šišanje (izmena)\",\n  \"price\": 1400,\n  \"duration_min\": 30,\n  \"active\": true\n}"}}},
-            {"name": "Delete (deactivate)", "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/barber/services/{{barber_service_id}}", "host":["{{baseUrl}}"], "path":["barber","services","{{barber_service_id}}"]}}}
-          ]
+          "name": "Barber: Profil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch(e){}",
+                  "if (json.id) {",
+                  "    pm.collectionVariables.set('barber_id', json.id);",
+                  "    console.log('✅ Barber ID saved');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/barber/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["barber", "me"]
+            },
+            "description": "Frizer dobavlja svoj profil."
+          },
+          "response": []
         },
         {
-          "name": "Working Hours",
+          "name": "📋 Services",
           "item": [
-            {"name": "List", "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/barber/working-hours", "host":["{{baseUrl}}"], "path":["barber","working-hours"]}}},
-            {"name": "Create", "request": {"method": "POST", "header":[{"key":"Content-Type","value":"application/json"}], "url": {"raw": "{{baseUrl}}/barber/working-hours", "host":["{{baseUrl}}"], "path":["barber","working-hours"]}, "body":{"mode":"raw","raw":"{\n  \"day_of_week\": 1,\n  \"start_time\": \"2000-01-01T09:00:00Z\",\n  \"end_time\": \"2000-01-01T17:00:00Z\"\n}"}}, "event":[{"listen":"test","script":{"type":"text/javascript","exec":["let j={};try{j=pm.response.json();}catch(e){}","if (j.id) pm.collectionVariables.set('hour_id', j.id);"]}}]},
-            {"name": "Update", "request": {"method": "PUT", "header":[{"key":"Content-Type","value":"application/json"}], "url": {"raw": "{{baseUrl}}/barber/working-hours/{{hour_id}}", "host":["{{baseUrl}}"], "path":["barber","working-hours","{{hour_id}}"]}, "body":{"mode":"raw","raw":"{\n  \"day_of_week\": 1,\n  \"start_time\": \"2000-01-01T10:00:00Z\",\n  \"end_time\": \"2000-01-01T18:00:00Z\"\n}"}}},
-            {"name": "Delete", "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/barber/working-hours/{{hour_id}}", "host":["{{baseUrl}}"], "path":["barber","working-hours","{{hour_id}}"]}}}
-          ]
+            {
+              "name": "Services: Lista",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barber/services",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "services"]
+                },
+                "description": "Lista usluga."
+              },
+              "response": []
+            },
+            {
+              "name": "Services: Kreiranje",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "let json = {};",
+                      "try { json = pm.response.json(); } catch(e){}",
+                      "if (json.id) {",
+                      "    pm.collectionVariables.set('barber_service_id', json.id);",
+                      "    console.log('✅ Service ID saved');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Muško šišanje\",\n  \"price\": 1200,\n  \"duration_min\": 30,\n  \"active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/barber/services",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "services"]
+                },
+                "description": "Kreiranje usluge."
+              },
+              "response": []
+            },
+            {
+              "name": "Services: Izmena",
+              "request": {
+                "method": "PUT",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Muško šišanje (izmena)\",\n  \"price\": 1500,\n  \"duration_min\": 30,\n  \"active\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/barber/services/{{barber_service_id}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "services", "{{barber_service_id}}"]
+                },
+                "description": "Izmena usluge."
+              },
+              "response": []
+            },
+            {
+              "name": "Services: Deaktivacija",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barber/services/{{barber_service_id}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "services", "{{barber_service_id}}"]
+                },
+                "description": "Deaktivacija usluge."
+              },
+              "response": []
+            }
+          ],
+          "description": "CRUD za usluge."
         },
         {
-          "name": "Breaks",
+          "name": "🕐 Working Hours",
           "item": [
-            {"name": "List", "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/barber/breaks", "host":["{{baseUrl}}"], "path":["barber","breaks"]}}},
-            {"name": "Create", "request": {"method": "POST", "header":[{"key":"Content-Type","value":"application/json"}], "url": {"raw": "{{baseUrl}}/barber/breaks", "host":["{{baseUrl}}"], "path":["barber","breaks"]}, "body":{"mode":"raw","raw":"{\n  \"day_of_week\": 1,\n  \"start_time\": \"2000-01-01T12:00:00Z\",\n  \"end_time\": \"2000-01-01T12:30:00Z\"\n}"}}, "event":[{"listen":"test","script":{"type":"text/javascript","exec":["let j={};try{j=pm.response.json();}catch(e){}","if (j.id) pm.collectionVariables.set('break_id', j.id);"]}}]},
-            {"name": "Update", "request": {"method": "PUT", "header":[{"key":"Content-Type","value":"application/json"}], "url": {"raw": "{{baseUrl}}/barber/breaks/{{break_id}}", "host":["{{baseUrl}}"], "path":["barber","breaks","{{break_id}}"]}, "body":{"mode":"raw","raw":"{\n  \"day_of_week\": 1,\n  \"start_time\": \"2000-01-01T12:30:00Z\",\n  \"end_time\": \"2000-01-01T13:00:00Z\"\n}"}}},
-            {"name": "Delete", "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/barber/breaks/{{break_id}}", "host":["{{baseUrl}}"], "path":["barber","breaks","{{break_id}}"]}}}
-          ]
+            {
+              "name": "Working Hours: Lista",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barber/working-hours",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "working-hours"]
+                },
+                "description": "Lista radnih vremena."
+              },
+              "response": []
+            },
+            {
+              "name": "Working Hours: Kreiranje",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "let json = {};",
+                      "try { json = pm.response.json(); } catch(e){}",
+                      "if (json.id) {",
+                      "    pm.collectionVariables.set('hour_id', json.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"day_of_week\": 1,\n  \"start_time\": \"2000-01-01T09:00:00Z\",\n  \"end_time\": \"2000-01-01T17:00:00Z\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/barber/working-hours",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "working-hours"]
+                },
+                "description": "Kreiranje radnog vremena."
+              },
+              "response": []
+            },
+            {
+              "name": "Working Hours: Izmena",
+              "request": {
+                "method": "PUT",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"day_of_week\": 1,\n  \"start_time\": \"2000-01-01T10:00:00Z\",\n  \"end_time\": \"2000-01-01T18:00:00Z\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/barber/working-hours/{{hour_id}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "working-hours", "{{hour_id}}"]
+                },
+                "description": "Izmena radnog vremena."
+              },
+              "response": []
+            },
+            {
+              "name": "Working Hours: Brisanje",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barber/working-hours/{{hour_id}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "working-hours", "{{hour_id}}"]
+                },
+                "description": "Brisanje radnog vremena."
+              },
+              "response": []
+            }
+          ],
+          "description": "CRUD za radno vreme."
         },
         {
-          "name": "Time Off",
+          "name": "☕ Breaks",
           "item": [
-            {"name": "List", "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/barber/time-off", "host":["{{baseUrl}}"], "path":["barber","time-off"]}}},
-            {"name": "Create", "request": {"method": "POST", "header":[{"key":"Content-Type","value":"application/json"}], "url": {"raw": "{{baseUrl}}/barber/time-off", "host":["{{baseUrl}}"], "path":["barber","time-off"]}, "body":{"mode":"raw","raw":"{\n  \"start_at\": \"2025-10-02T09:00:00Z\",\n  \"end_at\": \"2025-10-02T10:00:00Z\",\n  \"reason\": \"privatno\"\n}"}}, "event":[{"listen":"test","script":{"type":"text/javascript","exec":["let j={};try{j=pm.response.json();}catch(e){}","if (j.id) pm.collectionVariables.set('timeoff_id', j.id);"]}}]},
-            {"name": "Update", "request": {"method": "PUT", "header":[{"key":"Content-Type","value":"application/json"}], "url": {"raw": "{{baseUrl}}/barber/time-off/{{timeoff_id}}", "host":["{{baseUrl}}"], "path":["barber","time-off","{{timeoff_id}}"]}, "body":{"mode":"raw","raw":"{\n  \"start_at\": \"2025-10-02T09:30:00Z\",\n  \"end_at\": \"2025-10-02T10:30:00Z\",\n  \"reason\": \"izmena\"\n}"}}},
-            {"name": "Delete", "request": {"method": "DELETE", "url": {"raw": "{{baseUrl}}/barber/time-off/{{timeoff_id}}", "host":["{{baseUrl}}"], "path":["barber","time-off","{{timeoff_id}}"]}}}
-          ]
+            {
+              "name": "Breaks: Lista",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barber/breaks",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "breaks"]
+                },
+                "description": "Lista pauza."
+              },
+              "response": []
+            },
+            {
+              "name": "Breaks: Kreiranje",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "let json = {};",
+                      "try { json = pm.response.json(); } catch(e){}",
+                      "if (json.id) {",
+                      "    pm.collectionVariables.set('break_id', json.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"day_of_week\": 1,\n  \"start_time\": \"2000-01-01T12:00:00Z\",\n  \"end_time\": \"2000-01-01T12:30:00Z\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/barber/breaks",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "breaks"]
+                },
+                "description": "Kreiranje pauze."
+              },
+              "response": []
+            },
+            {
+              "name": "Breaks: Izmena",
+              "request": {
+                "method": "PUT",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"day_of_week\": 1,\n  \"start_time\": \"2000-01-01T12:30:00Z\",\n  \"end_time\": \"2000-01-01T13:00:00Z\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/barber/breaks/{{break_id}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "breaks", "{{break_id}}"]
+                },
+                "description": "Izmena pauze."
+              },
+              "response": []
+            },
+            {
+              "name": "Breaks: Brisanje",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barber/breaks/{{break_id}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "breaks", "{{break_id}}"]
+                },
+                "description": "Brisanje pauze."
+              },
+              "response": []
+            }
+          ],
+          "description": "CRUD za pauze."
         },
         {
-          "name": "Appointments (barber)",
+          "name": "🏖️ Time Off",
           "item": [
-            {"name": "List", "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/barber/appointments?from={{from}}&to={{to}}&status={{status}}", "host":["{{baseUrl}}"], "path":["barber","appointments"], "query":[{"key":"from","value":"{{from}}"},{"key":"to","value":"{{to}}"},{"key":"status","value":"{{status}}"}]} }},
-            {"name": "Cancel", "request": {"method": "POST", "url": {"raw": "{{baseUrl}}/barber/appointments/{{appointment_id}}/cancel", "host":["{{baseUrl}}"], "path":["barber","appointments","{{appointment_id}}","cancel"]}}}
-          ]
+            {
+              "name": "Time Off: Lista",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barber/time-off",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "time-off"]
+                },
+                "description": "Lista time-off perioda."
+              },
+              "response": []
+            },
+            {
+              "name": "Time Off: Kreiranje",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "let json = {};",
+                      "try { json = pm.response.json(); } catch(e){}",
+                      "if (json.id) {",
+                      "    pm.collectionVariables.set('timeoff_id', json.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"start_at\": \"2025-10-15T00:00:00Z\",\n  \"end_at\": \"2025-10-17T23:59:59Z\",\n  \"reason\": \"Godišnji odmor\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/barber/time-off",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "time-off"]
+                },
+                "description": "Kreiranje time-off perioda."
+              },
+              "response": []
+            },
+            {
+              "name": "Time Off: Izmena",
+              "request": {
+                "method": "PUT",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"start_at\": \"2025-10-15T09:00:00Z\",\n  \"end_at\": \"2025-10-18T17:00:00Z\",\n  \"reason\": \"Produžen godišnji\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/barber/time-off/{{timeoff_id}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "time-off", "{{timeoff_id}}"]
+                },
+                "description": "Izmena time-off perioda."
+              },
+              "response": []
+            },
+            {
+              "name": "Time Off: Brisanje",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barber/time-off/{{timeoff_id}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "time-off", "{{timeoff_id}}"]
+                },
+                "description": "Brisanje time-off perioda."
+              },
+              "response": []
+            }
+          ],
+          "description": "CRUD za time-off periode."
+        },
+        {
+          "name": "📅 Appointments",
+          "item": [
+            {
+              "name": "Appointments: Lista",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barber/appointments?from={{from}}&to={{to}}&status={{status}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "appointments"],
+                  "query": [
+                    {"key": "from", "value": "{{from}}"},
+                    {"key": "to", "value": "{{to}}"},
+                    {"key": "status", "value": "{{status}}"}
+                  ]
+                },
+                "description": "Lista termina sa filterima."
+              },
+              "response": []
+            },
+            {
+              "name": "Appointments: Potvrdi",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barber/appointments/{{appointment_id}}/confirm",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "appointments", "{{appointment_id}}", "confirm"]
+                },
+                "description": "Potvrda termina. Šalje email klijentu."
+              },
+              "response": []
+            },
+            {
+              "name": "Appointments: Otkaži",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barber/appointments/{{appointment_id}}/cancel",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "appointments", "{{appointment_id}}", "cancel"]
+                },
+                "description": "Otkazivanje termina. Šalje email klijentu."
+              },
+              "response": []
+            },
+            {
+              "name": "Appointments: Obriši",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barber/appointments/{{appointment_id}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["barber", "appointments", "{{appointment_id}}"]
+                },
+                "description": "Brisanje termina iz baze."
+              },
+              "response": []
+            }
+          ],
+          "description": "Upravljanje terminima."
         }
-      ]
+      ],
+      "description": "Barber endpoint-i."
     }
   ]
 }

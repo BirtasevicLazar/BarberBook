@@ -22,9 +22,9 @@ export interface UpdateServicePayload extends CreateServicePayload {
 export interface BarberWorkingHour {
   id: string;
   barberId: string;
-  dayOfWeek: number; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  startTime: string; // ISO 8601 datetime
-  endTime: string;   // ISO 8601 datetime
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;  
 }
 
 export interface CreateWorkingHourPayload {
@@ -38,9 +38,9 @@ export interface UpdateWorkingHourPayload extends CreateWorkingHourPayload {}
 export interface BarberBreak {
   id: string;
   barberId: string;
-  dayOfWeek: number; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  startTime: string; // ISO 8601 datetime
-  endTime: string;   // ISO 8601 datetime
+  dayOfWeek: number; 
+  startTime: string;
+  endTime: string; 
 }
 
 export interface CreateBreakPayload {
@@ -54,8 +54,8 @@ export interface UpdateBreakPayload extends CreateBreakPayload {}
 export interface BarberTimeOff {
   id: string;
   barberId: string;
-  startAt: string; // ISO 8601 datetime
-  endAt: string;   // ISO 8601 datetime
+  startAt: string;
+  endAt: string;   
   reason?: string | null;
 }
 
@@ -80,8 +80,8 @@ export interface Appointment {
   customerEmail?: string | null;
   price: number;
   durationMin: number;
-  startAt: string; // ISO 8601 datetime
-  endAt: string;   // ISO 8601 datetime
+  startAt: string; 
+  endAt: string;   
   status: AppointmentStatus;
   notes?: string | null;
   createdAt: string;

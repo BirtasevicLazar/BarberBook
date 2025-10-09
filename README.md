@@ -13,7 +13,6 @@ Kompletan sistem za rezervaciju termina u frizerskim salonima.
 - 🔒 **Autentikacija** - JWT token-based authentication
 - 📱 **Responsive dizajn** - Radi na desktop-u i mobilnom
 
----
 
 ## 🏗️ Tehnološki Stack
 
@@ -35,13 +34,12 @@ Kompletan sistem za rezervaciju termina u frizerskim salonima.
 - **docker-compose** - Orkestracija
 - **Nginx** - Reverse proxy
 
----
 
 ## 🚀 Quick Start sa Docker
 
 **Najbrži način** da pokreneš kompletan projekat (baza + backend + frontend):
 
-### Automatski script (preporučeno)
+### Pokretanje 
 
 ```bash
 git clone https://github.com/BirtasevicLazar/BarberBook.git
@@ -49,31 +47,19 @@ cd BarberBook
 ./start-docker.sh
 ```
 
-**To je SVE!** Script automatski:
-- ✅ Kreira `backend/.env` iz `backend/.env.example` (sa tvojim SMTP kredencijalima)
-- ✅ Kreira `frontend/.env.local` iz `frontend/.env.local.example`
-- ✅ Build-uje Docker image-e
-- ✅ Pokreće PostgreSQL, Backend, Frontend
-- ✅ Automatski izvršava database migracije
-
-✅ Aplikacija je dostupna na:
 - **Frontend**: http://localhost
 - **Backend API**: http://localhost:8080
 
-### Ručno pokretanje
-
+**Za Android Emulator:**
 ```bash
-git clone https://github.com/BirtasevicLazar/BarberBook.git
-cd BarberBook
-
-# Kreiraj .env fajlove iz template-a
-./setup-env.sh
-
-# Pokreni Docker
-docker-compose up -d
+cd android
+npm install
+npm start
+# U drugom terminalu:
+npm run android
 ```
 
-### Korisni script-ovi
+### Docker script-ovi
 
 ```bash
 ./start-docker.sh    # Pokreni sve
@@ -82,10 +68,6 @@ docker-compose up -d
 ./logs-docker.sh backend  # Samo backend logovi
 ./setup-env.sh       # Kreiraj .env fajlove iz template-a
 ```
-
-📖 **Detaljno uputstvo**: [README-DOCKER.md](README-DOCKER.md)
-
----
 
 ## 📦 Development Setup (bez Docker-a)
 
@@ -148,7 +130,6 @@ npm run dev
 
 Frontend radi na: http://localhost:5173
 
----
 
 ## 📚 API Dokumentacija
 
@@ -198,9 +179,6 @@ POST   /salons/:salon_id/barbers/:barber_id/schedule  - Podesi radno vreme
 POST   /salons/:salon_id/barbers/:barber_id/timeoff   - Dodaj slobodan dan
 ```
 
-Kompletna Postman kolekcija: [backend/postman/BarberBook.postman_collection.json](backend/postman/BarberBook.postman_collection.json)
-
----
 
 ## 🗄️ Database Schema
 
@@ -217,183 +195,9 @@ Kompletna Postman kolekcija: [backend/postman/BarberBook.postman_collection.json
 
 Migracije: [backend/migrations/](backend/migrations/)
 
----
-
-## 🔐 Environment Variables
-
-### Struktura:
-
-```
-BarberBook/
-├── backend/
-│   ├── .env              # ← Lokalno (NE IDE NA GIT!)
-│   └── .env.example      # ← Template (ide na Git)
-├── frontend/
-│   ├── .env.local        # ← Lokalno (NE IDE NA GIT!)
-│   └── .env.local.example # ← Template (ide na Git)
-```
-
-### Backend (`backend/.env`)
-
-```env
-# Database (PostgreSQL default credentials)
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=barberbook_db
-DB_SSLMODE=disable
-
-# Email
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=lazar.birtasevic1@gmail.com
-MAIL_PASSWORD=dxwrtlynackrjgzb
-```
-
-> **Napomena:** 
-> - Database kredencijali su PostgreSQL default (`postgres`/`postgres`) - rade na svakom računaru
-> - JWT_SECRET nije potreban - backend koristi default vrednost `dev-secret-change`
-
-### Frontend (`frontend/.env.local`)
-
-```env
-VITE_API_BASE_URL=http://localhost:8080
-VITE_APP_NAME=BarberBook
-```
-
-### Docker Development
-
-Za Docker, **NE TREBA ručno kreirati `.env` fajlove!**
-
-`./start-docker.sh` automatski kreira:
-- `backend/.env` iz `backend/.env.example`
-- `frontend/.env.local` iz `frontend/.env.local.example`
-
-Docker koristi **svoje environment varijable** definisane u `docker-compose.yml`:
-- Database: `postgres` (Docker internal hostname)
-- SMTP: Tvoji pravi kredencijali (hardcoded u `docker-compose.yml`)
-
----
-
-## 🧪 Testing
-
-### Backend
-
-```bash
-cd backend
-go test ./...
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm run test
-```
-
----
-
-## 📝 Git Workflow
-
-### ❌ Što NE sme na Git:
-
-- `backend/.env` - **SECRETS!**
-- `frontend/.env.local` - **SECRETS!**
-- `node_modules/`
-- `dist/` i `build/`
-- PostgreSQL data folderi
-- Docker volumes
-
-### ✅ Safe za Git (već uključeno):
-
-- `backend/.env.example` - Template sa tvojim pravim kredencijalima
-- `frontend/.env.local.example` - Template
-- `.gitignore` (konfigurisano za sve foldere)
-- `.gitattributes` (line endings za shell scriptove)
-- Source code
-- Migracije
-- Dokumentacija
-- Dockerfiles i docker-compose.yml
-- Helper scriptovi (`start-docker.sh`, itd.)
-
-### 🔒 Kako radi:
-
-**Template fajlovi (`*.example`) JESU na Git-u** i sadrže tvoje prave kredencijale.  
-**Pravi `.env` fajlovi NISU na Git-u** (u `.gitignore`).
-
-**Na drugom računaru:**
-```bash
-git clone https://github.com/BirtasevicLazar/BarberBook.git
-cd BarberBook
-./start-docker.sh  # ← Automatski kreira .env iz .example
-```
-
-ili ručno:
-```bash
-./setup-env.sh  # Kreira backend/.env i frontend/.env.local
-```
-
----
-
-## 🚢 Production Deployment
-
-### Option 1: Docker (preporučeno)
-
-```bash
-# Na serveru
-git clone https://github.com/BirtasevicLazar/BarberBook.git
-cd BarberBook
-
-# Podesi production secrets
-cp .env.example .env
-nano .env  # ← Promeni DB_PASSWORD, JWT_SECRET, MAIL_*
-
-# Pokreni
-docker-compose up -d
-```
-
-### Option 2: Ručno
-
-1. Deploy PostgreSQL bazu
-2. Build backend: `go build -o barberbook-server`
-3. Build frontend: `npm run build`
-4. Podesi Nginx reverse proxy
-5. SSL certifikat (Let's Encrypt)
-6. Systemd service za backend
-
----
-
-## 🤝 Contributing
-
-1. Fork repozitorijum
-2. Kreiraj feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit izmene (`git commit -m 'Add some AmazingFeature'`)
-4. Push na branch (`git push origin feature/AmazingFeature`)
-5. Otvori Pull Request
-
----
-
-## 📄 License
-
-MIT License - vidi [LICENSE](LICENSE) za detalje.
-
----
 
 ## 👨‍💻 Author
 
 **Lazar Birtašević**
 
 - GitHub: [@BirtasevicLazar](https://github.com/BirtasevicLazar)
-
----
-
-## 🆘 Support
-
-- 📖 Dokumentacija: [README-DOCKER.md](README-DOCKER.md)
-- 🐛 Issues: [GitHub Issues](https://github.com/BirtasevicLazar/BarberBook/issues)
-- 📧 Email: lazar.birtasevic@example.com
-
----
-
-**Made with ❤️ in Serbia**
