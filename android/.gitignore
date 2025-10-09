@@ -1,7 +1,11 @@
 # OSX
 #
 .DS_Store
+
+# Environment files (ignore actual, track template)
 .env
+!.env.example
+
 # Xcode
 #
 build/
