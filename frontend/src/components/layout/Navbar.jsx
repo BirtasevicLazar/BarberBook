@@ -56,9 +56,14 @@ export default function Navbar() {
           {/* Logo */}
           <Link 
             to="/" 
-            className={`text-lg font-semibold text-gray-900 transition-opacity duration-200 ${isMenuOpen ? 'md:opacity-100 opacity-0' : 'opacity-100'}`}
+            className={`flex items-center gap-2 text-lg font-semibold text-gray-900 transition-opacity duration-200 ${isMenuOpen ? 'md:opacity-100 opacity-0' : 'opacity-100'}`}
           >
-            BarberBook
+            <img 
+              src="/BarberBookLogo.png" 
+              alt="BarberBook Logo" 
+              className="w-8 h-8 object-contain"
+            />
+            <span>BarberBook</span>
           </Link>
           
           {/* Desktop Menu */}
@@ -139,10 +144,15 @@ export default function Navbar() {
           <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
             <Link 
               to="/" 
-              className="text-xl font-semibold text-gray-900"
+              className="flex items-center gap-2 text-xl font-semibold text-gray-900"
               onClick={() => setIsMenuOpen(false)}
             >
-              BarberBook
+              <img 
+                src="/BarberBookLogo.png" 
+                alt="BarberBook Logo" 
+                className="w-8 h-8 object-contain"
+              />
+              <span>BarberBook</span>
             </Link>
           </div>
 

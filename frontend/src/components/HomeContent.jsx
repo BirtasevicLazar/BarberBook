@@ -74,7 +74,7 @@ export default function HomeContent() {
                 </div>
                 <div className="md:w-1/2 h-48 rounded-xl overflow-hidden">
                   <img 
-                    src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=400&fit=crop&crop=center" 
+                    src="/Salon.jpg" 
                     alt="Salon dashboard" 
                     className="w-full h-full object-cover"
                   />
@@ -89,7 +89,7 @@ export default function HomeContent() {
                 </div>
                 <div className="md:w-1/2 h-48 rounded-xl overflow-hidden">
                   <img 
-                    src="https://images.unsplash.com/photo-1562322140-8baeececf3df?w=600&h=400&fit=crop&crop=center" 
+                    src="/Barber.jpg" 
                     alt="Team management" 
                     className="w-full h-full object-cover"
                   />
@@ -104,7 +104,7 @@ export default function HomeContent() {
                 </div>
                 <div className="md:w-1/2 h-48 rounded-xl overflow-hidden">
                   <img 
-                    src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=400&fit=crop&crop=center" 
+                    src="/Share.jpg" 
                     alt="Online booking" 
                     className="w-full h-full object-cover"
                   />

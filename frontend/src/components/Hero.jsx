@@ -45,7 +45,7 @@ export default function Hero() {
         <Container>
           <div className="text-center text-white max-w-5xl mx-auto px-6">
             {/* Main heading */}
-            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-extralight leading-[0.9] mb-12 tracking-tight">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-extralight leading-[1.1] mb-12 tracking-tight">
               Digitalizujte svoj
               <br />
               <span className="font-light text-white/90">
