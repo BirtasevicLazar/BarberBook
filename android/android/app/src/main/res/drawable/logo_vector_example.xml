@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PRIMER: Vector drawable logo (SVG format za Android) -->
+<!-- 
+  Ako imaš SVG logo, možeš ga konvertovati u Android Vector Drawable preko:
+  - Android Studio: Right click na res/drawable > New > Vector Asset
+  - Online: https://svg2vector.com/
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    
+    <!-- PRIMER: Jednostavan "B" logo za BarberBook -->
+    <!-- Zameni ovo sa svojim pravim logo vector pathom -->
+    
+    <!-- Outer circle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M100,20 A80,80 0 1,1 100,180 A80,80 0 1,1 100,20 Z"
+        android:strokeWidth="4"
+        android:strokeColor="#FFD700"/>
+    
+    <!-- Letter B -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M 70,60 L 70,140 L 110,140 Q 130,140 130,120 Q 130,100 110,100 Q 130,100 130,80 Q 130,60 110,60 Z 
+                         M 85,75 L 105,75 Q 115,75 115,85 Q 115,95 105,95 L 85,95 Z 
+                         M 85,105 L 110,105 Q 120,105 120,115 Q 120,125 110,125 L 85,125 Z"/>
+    
+    <!-- Scissors icon (optional decoration) -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M 60,50 L 70,45 L 65,55 Z"
+        android:strokeWidth="2"
+        android:strokeColor="#FFD700"/>
+        
+</vector>

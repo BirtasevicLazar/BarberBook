@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ALTERNATIVNI SPLASH SCREEN - sa custom slikom i tekstom -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Pozadina - gradient (umesto solid boje) -->
+    <item>
+        <shape>
+            <gradient
+                android:type="linear"
+                android:angle="135"
+                android:startColor="#1a1a1a"
+                android:centerColor="#2a2a2a"
+                android:endColor="#3a3a3a"/>
+        </shape>
+    </item>
+    
+    <!-- Logo ili splash slika -->
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@mipmap/ic_launcher"/>
+            <!-- Možeš zameniti sa: android:src="@drawable/splash_logo" -->
+    </item>
+    
+    <!-- Opciono: Tekst ispod loga (ako koristiš custom drawable sa tekstom) -->
+    <!-- 
+    <item android:bottom="100dp" android:gravity="bottom|center_horizontal">
+        <bitmap android:src="@drawable/splash_text"/>
+    </item>
+    -->
+    
+</layer-list>
