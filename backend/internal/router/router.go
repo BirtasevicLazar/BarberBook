@@ -20,7 +20,7 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 	// Avoid trusted proxy warning; in production, configure via env as needed.
 	_ = r.SetTrustedProxies(nil)
 
-	// CORS: allow frontend origins (dev: 5173, Docker: 80, prod: 443)
+	// CORS: allow frontend origins (dev: 5173, Docker: 80, prod: 443, Android: 10.0.2.2)
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
 			"http://localhost:5173", // Vite dev server
@@ -29,6 +29,8 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 			"http://127.0.0.1",      // Docker frontend (port 80, alternative)
 			"https://localhost",     // Docker frontend (port 443, if using HTTPS)
 			"https://127.0.0.1",     // Docker frontend (port 443, alternative)
+			"http://10.0.2.2:8080",  // Android emulator
+			"http://10.0.2.2",       // Android emulator (without port)
 		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
