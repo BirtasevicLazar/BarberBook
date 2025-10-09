@@ -758,7 +758,7 @@ export default function ScheduleScreen() {
               style={styles.quickActionButton}
               onPress={() => setShowBreakForm(true)}
             >
-              <MaterialCommunityIcons name="coffee" size={20} color={theme.colors.warning} />
+              <Image source={workingHoursIcon} style={styles.quickActionIcon} resizeMode="contain" />
               <Text style={styles.quickActionText}>Dodaj pauzu</Text>
             </TouchableOpacity>
           </View>
@@ -1100,6 +1100,11 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: theme.colors.border,
     borderStyle: 'dashed',
+  },
+  quickActionIcon: {
+    width: 20,
+    height: 20,
+    tintColor: theme.colors.warning,
   },
   quickActionText: {
     fontSize: 15,

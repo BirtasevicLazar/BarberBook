@@ -36,6 +36,7 @@ import { palette, theme } from '../styles/theme';
 
 const addIcon: ImageSourcePropType = require('../assets/icons/Add.png');
 const editIcon: ImageSourcePropType = require('../assets/icons/Edit.png');
+const deleteIcon: ImageSourcePropType = require('../assets/icons/Delete.png');
 
 interface ServiceFormData {
   name: string;
@@ -475,11 +476,10 @@ function ServiceCard({ service, currency, onUpdate, onDelete, isFirst, isLast }:
               style={styles.deleteButton}
               disabled={saving}
             >
-              <MaterialCommunityIcons 
-                name="delete-outline" 
-                size={theme.typography.callout.fontSize} 
-                color={theme.colors.danger}
+              <Image 
+                source={deleteIcon}
                 style={styles.deleteIcon}
+                resizeMode="contain"
               />
               <Text style={styles.deleteButtonText}>Obriši uslugu</Text>
             </TouchableOpacity>
@@ -925,7 +925,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 69, 58, 0.1)',
   },
   deleteIcon: {
+    width: 18,
+    height: 18,
     marginRight: theme.spacing(1),
+    tintColor: theme.colors.danger,
   },
   deleteButtonText: {
     ...theme.typography.footnote,
