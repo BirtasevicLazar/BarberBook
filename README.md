@@ -133,6 +133,28 @@ Frontend radi na: http://localhost:5173
 
 ## 📚 API Dokumentacija
 
+### 📮 Postman Collection
+
+Kompletan Postman collection sa svim endpoint-ima je dostupan u:
+```
+backend/postman/BarberBook.postman_collection.json
+```
+
+**Kako koristiti:**
+1. Otvori Postman
+2. Import → File → Izaberi `BarberBook.postman_collection.json`
+3. Kolekcija sadrži **40+ endpoint-a** organizovanih u foldere:
+   - 🌐 **Public** - Javni endpoint-i (salon, frizeri, rezervacije)
+   - 🔐 **Auth** - Login za vlasnike i frizere
+   - 👔 **Owner** - Upravljanje salonom i frizerima
+   - ✂️ **Barber** - Usluge, radno vreme, pauze, slobodni dani, termini
+
+**Features:**
+- Auto-save test skripte za tokene i ID-jeve
+- Collection variables za lako testiranje
+- Svi opisi na srpskom jeziku
+- Email funkcionalnost dokumentovana
+
 ### Public Endpoints (bez autentikacije)
 
 ```
