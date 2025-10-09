@@ -50,15 +50,6 @@ cd BarberBook
 - **Frontend**: http://localhost
 - **Backend API**: http://localhost:8080
 
-**Za Android Emulator:**
-```bash
-cd android
-npm install
-npm start
-# U drugom terminalu:
-npm run android
-```
-
 ### Docker script-ovi
 
 ```bash
@@ -67,6 +58,15 @@ npm run android
 ./logs-docker.sh     # Prati logove (svih servisa)
 ./logs-docker.sh backend  # Samo backend logovi
 ./setup-env.sh       # Kreiraj .env fajlove iz template-a
+```
+
+### Za Android Emulator:**
+```bash
+cd android
+npm install
+npm start
+# U drugom terminalu:
+npm run android
 ```
 
 ## 📦 Development Setup (bez Docker-a)
