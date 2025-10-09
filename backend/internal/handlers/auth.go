@@ -26,17 +26,17 @@ type loginRequest struct {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		BadRequest(c, "invalid_body", err.Error())
+		BadRequest(c, "invalid_body", "Nepravilno poslati podaci")
 		return
 	}
 	userID, role, err := h.svc.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
-		Unauthorized(c, "invalid_credentials", "invalid credentials")
+		Unauthorized(c, "invalid_credentials", "Pogrešan email ili lozinka")
 		return
 	}
 	tok, err := h.jwtAu.GenerateToken(userID, role)
 	if err != nil {
-		ServerError(c, "token_issue_failed", "failed to issue token")
+		ServerError(c, "token_issue_failed", "Greška pri kreiranju tokena")
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"access_token": tok, "token_type": "Bearer"})
@@ -47,22 +47,22 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) OwnerLogin(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		BadRequest(c, "invalid_body", err.Error())
+		BadRequest(c, "invalid_body", "Nepravilno poslati podaci")
 		return
 	}
 	userID, role, err := h.svc.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
-		Unauthorized(c, "invalid_credentials", "invalid credentials")
+		Unauthorized(c, "invalid_credentials", "Pogrešan email ili lozinka")
 		return
 	}
 	// Ensure only owners can login through this endpoint
 	if role != "owner" {
-		Unauthorized(c, "not_owner", "this login is only for salon owners")
+		Unauthorized(c, "not_owner", "Ovaj login je samo za vlasnike salona")
 		return
 	}
 	tok, err := h.jwtAu.GenerateToken(userID, role)
 	if err != nil {
-		ServerError(c, "token_issue_failed", "failed to issue token")
+		ServerError(c, "token_issue_failed", "Greška pri kreiranju tokena")
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"access_token": tok, "token_type": "Bearer"})
@@ -73,22 +73,22 @@ func (h *AuthHandler) OwnerLogin(c *gin.Context) {
 func (h *AuthHandler) BarberLogin(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		BadRequest(c, "invalid_body", err.Error())
+		BadRequest(c, "invalid_body", "Nepravilno poslati podaci")
 		return
 	}
 	userID, role, err := h.svc.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
-		Unauthorized(c, "invalid_credentials", "invalid credentials")
+		Unauthorized(c, "invalid_credentials", "Pogrešan email ili lozinka")
 		return
 	}
 	// Ensure only barbers can login through this endpoint
 	if role != "barber" {
-		Unauthorized(c, "not_barber", "this login is only for barbers")
+		Unauthorized(c, "not_barber", "Ovaj login je samo za frizere")
 		return
 	}
 	tok, err := h.jwtAu.GenerateToken(userID, role)
 	if err != nil {
-		ServerError(c, "token_issue_failed", "failed to issue token")
+		ServerError(c, "token_issue_failed", "Greška pri kreiranju tokena")
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"access_token": tok, "token_type": "Bearer"})

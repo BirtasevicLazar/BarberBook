@@ -22,26 +22,26 @@ func NewBarberServicesHandler(svc *services.BarberServicesService, barbersSvc *s
 func (h *BarberServicesHandler) getAuthBarberID(c *gin.Context) (uuid.UUID, bool) {
 	uidVal, ok := c.Get("user_id")
 	if !ok {
-		Unauthorized(c, "missing_token", "authorization required")
+		Unauthorized(c, "missing_token", "Autorizacija je obavezna")
 		return uuid.Nil, false
 	}
 	uidStr, ok := uidVal.(string)
 	if !ok {
-		Unauthorized(c, "invalid_token", "invalid token")
+		Unauthorized(c, "invalid_token", "Nevažeći token")
 		return uuid.Nil, false
 	}
 	userID, err := uuid.Parse(uidStr)
 	if err != nil {
-		Unauthorized(c, "invalid_token", "invalid token")
+		Unauthorized(c, "invalid_token", "Nevažeći token")
 		return uuid.Nil, false
 	}
 	b, err := h.barbersSvc.GetBarberByUser(c.Request.Context(), userID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			NotFound(c, "barber_not_found", "barber profile not found")
+			NotFound(c, "barber_not_found", "Profil frizera nije pronađen")
 			return uuid.Nil, false
 		}
-		ServerError(c, "barber_lookup_failed", err.Error())
+		ServerError(c, "barber_lookup_failed", "Greška pri učitavanju profila frizera")
 		return uuid.Nil, false
 	}
 	return b.ID, true
@@ -55,7 +55,7 @@ func (h *BarberServicesHandler) List(c *gin.Context) {
 	}
 	items, err := h.svc.List(c.Request.Context(), barberID)
 	if err != nil {
-		ServerError(c, "list_failed", err.Error())
+		ServerError(c, "list_failed", "Greška pri učitavanju liste usluga")
 		return
 	}
 	c.JSON(http.StatusOK, items)
@@ -74,7 +74,7 @@ func (h *BarberServicesHandler) Create(c *gin.Context) {
 	}
 	var req createServiceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		BadRequest(c, "invalid_body", err.Error())
+		BadRequest(c, "invalid_body", "Nepravilno poslati podaci")
 		return
 	}
 	bs, err := h.svc.Create(c.Request.Context(), services.CreateServiceInput{
@@ -86,10 +86,10 @@ func (h *BarberServicesHandler) Create(c *gin.Context) {
 	if err != nil {
 		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
 			// UNIQUE (barber_id, name)
-			Conflict(c, "duplicate_service", "service with that name already exists")
+			Conflict(c, "duplicate_service", "Usluga sa ovim imenom već postoji")
 			return
 		}
-		ServerError(c, "create_failed", err.Error())
+		ServerError(c, "create_failed", "Greška pri kreiranju usluge")
 		return
 	}
 	c.JSON(http.StatusCreated, bs)
@@ -109,12 +109,12 @@ func (h *BarberServicesHandler) Update(c *gin.Context) {
 	}
 	sid, err := uuid.Parse(c.Param("service_id"))
 	if err != nil {
-		BadRequest(c, "invalid_service_id", "invalid service_id")
+		BadRequest(c, "invalid_service_id", "Nepravilan ID usluge")
 		return
 	}
 	var req updateServiceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		BadRequest(c, "invalid_body", err.Error())
+		BadRequest(c, "invalid_body", "Nepravilno poslati podaci")
 		return
 	}
 	bs, err := h.svc.Update(c.Request.Context(), services.UpdateServiceInput{
@@ -127,14 +127,14 @@ func (h *BarberServicesHandler) Update(c *gin.Context) {
 	})
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			NotFound(c, "service_not_found", "service not found")
+			NotFound(c, "service_not_found", "Usluga nije pronađena")
 			return
 		}
 		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
-			Conflict(c, "duplicate_service", "service with that name already exists")
+			Conflict(c, "duplicate_service", "Usluga sa ovim imenom već postoji")
 			return
 		}
-		ServerError(c, "update_failed", err.Error())
+		ServerError(c, "update_failed", "Greška pri ažuriranju usluge")
 		return
 	}
 	c.JSON(http.StatusOK, bs)
@@ -147,16 +147,16 @@ func (h *BarberServicesHandler) Deactivate(c *gin.Context) {
 	}
 	sid, err := uuid.Parse(c.Param("service_id"))
 	if err != nil {
-		BadRequest(c, "invalid_service_id", "invalid service_id")
+		BadRequest(c, "invalid_service_id", "Nepravilan ID usluge")
 		return
 	}
 	bs, err := h.svc.Deactivate(c.Request.Context(), barberID, sid)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			NotFound(c, "service_not_found", "service not found")
+			NotFound(c, "service_not_found", "Usluga nije pronađena")
 			return
 		}
-		ServerError(c, "deactivate_failed", err.Error())
+		ServerError(c, "deactivate_failed", "Greška pri deaktivaciji usluge")
 		return
 	}
 	c.JSON(http.StatusOK, bs)

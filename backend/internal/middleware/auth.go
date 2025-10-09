@@ -32,7 +32,7 @@ func (a *JWTAuthenticator) Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth := c.GetHeader("Authorization")
 		if auth == "" || !strings.HasPrefix(auth, "Bearer ") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing token"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Autorizacija je obavezna"})
 			return
 		}
 		tokStr := strings.TrimPrefix(auth, "Bearer ")
@@ -43,12 +43,12 @@ func (a *JWTAuthenticator) Middleware() gin.HandlerFunc {
 			return a.secret, nil
 		})
 		if err != nil || !tok.Valid {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Nevažeći token"})
 			return
 		}
 		claims, ok := tok.Claims.(jwt.MapClaims)
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid claims"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Nevažeći token"})
 			return
 		}
 		c.Set("user_id", claims["sub"]) // string
@@ -67,16 +67,16 @@ func (a *JWTAuthenticator) RequireRole(allowed ...string) gin.HandlerFunc {
 		// Must already be authenticated by Middleware()
 		roleVal, ok := c.Get("role")
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing role"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Autorizacija je obavezna"})
 			return
 		}
 		roleStr, ok := roleVal.(string)
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid role"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Nevažeća uloga"})
 			return
 		}
 		if _, ok := allowedSet[roleStr]; !ok {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "forbidden"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Nemate pristup ovom resursu"})
 			return
 		}
 		c.Next()

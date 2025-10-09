@@ -33,29 +33,29 @@ type addBarberRequest struct {
 func (h *BarbersHandler) CreateBarber(c *gin.Context) {
 	salonID, err := uuid.Parse(c.Param("salon_id"))
 	if err != nil {
-		BadRequest(c, "invalid_salon_id", "invalid salon_id")
+		BadRequest(c, "invalid_salon_id", "Nepravilan ID salona")
 		return
 	}
 	var req addBarberRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		BadRequest(c, "invalid_body", err.Error())
+		BadRequest(c, "invalid_body", "Nepravilno poslati podaci")
 		return
 	}
 
 	// owner check: ensure token.sub == salon.owner_id
 	s, err := h.salonsRepo.GetByID(c.Request.Context(), salonID)
 	if err != nil {
-		NotFound(c, "salon_not_found", "salon not found")
+		NotFound(c, "salon_not_found", "Salon nije pronađen")
 		return
 	}
 	uidVal, ok := c.Get("user_id")
 	if !ok {
-		Unauthorized(c, "missing_token", "authorization required")
+		Unauthorized(c, "missing_token", "Autorizacija je obavezna")
 		return
 	}
 	uid, ok := uidVal.(string)
 	if !ok || s.OwnerID.String() != uid {
-		Unauthorized(c, "forbidden", "you are not allowed to add barbers to this salon")
+		Unauthorized(c, "forbidden", "Nemate dozvolu da dodajete frizere u ovaj salon")
 		return
 	}
 
@@ -74,17 +74,17 @@ func (h *BarbersHandler) CreateBarber(c *gin.Context) {
 			// Try to tailor the message based on constraint name
 			switch pgErr.ConstraintName {
 			case "users_email_key":
-				Conflict(c, "duplicate_email", "email already exists")
+				Conflict(c, "duplicate_email", "Korisnik sa ovim emailom već postoji")
 				return
 			case "barbers_salon_id_display_name_key":
-				Conflict(c, "duplicate_display_name", "display name already exists for this salon")
+				Conflict(c, "duplicate_display_name", "Frizer sa ovim imenom već postoji u ovom salonu")
 				return
 			default:
-				Conflict(c, "duplicate", "unique constraint violated")
+				Conflict(c, "duplicate", "Ovaj unos već postoji")
 				return
 			}
 		}
-		ServerError(c, "create_barber_failed", err.Error())
+		ServerError(c, "create_barber_failed", "Greška pri kreiranju frizera")
 		return
 	}
 
@@ -98,26 +98,26 @@ func (h *BarbersHandler) CreateBarber(c *gin.Context) {
 func (h *BarbersHandler) Me(c *gin.Context) {
 	uidVal, ok := c.Get("user_id")
 	if !ok {
-		Unauthorized(c, "missing_token", "authorization required")
+		Unauthorized(c, "missing_token", "Autorizacija je obavezna")
 		return
 	}
 	uidStr, ok := uidVal.(string)
 	if !ok {
-		Unauthorized(c, "invalid_token", "invalid token")
+		Unauthorized(c, "invalid_token", "Nevažeći token")
 		return
 	}
 	userID, err := uuid.Parse(uidStr)
 	if err != nil {
-		BadRequest(c, "invalid_user_id", "invalid user id in token")
+		BadRequest(c, "invalid_user_id", "Nevažeći ID korisnika")
 		return
 	}
 	b, err := h.svc.GetBarberByUser(c.Request.Context(), userID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			NotFound(c, "barber_not_found", "barber profile not found")
+			NotFound(c, "barber_not_found", "Profil frizera nije pronađen")
 			return
 		}
-		ServerError(c, "fetch_failed", err.Error())
+		ServerError(c, "fetch_failed", "Greška pri učitavanju podataka")
 		return
 	}
 	c.JSON(http.StatusOK, b)
@@ -126,27 +126,27 @@ func (h *BarbersHandler) Me(c *gin.Context) {
 func (h *BarbersHandler) ListBarbers(c *gin.Context) {
 	salonID, err := uuid.Parse(c.Param("salon_id"))
 	if err != nil {
-		BadRequest(c, "invalid_salon_id", "invalid salon_id")
+		BadRequest(c, "invalid_salon_id", "Nepravilan ID salona")
 		return
 	}
 	s, err := h.salonsRepo.GetByID(c.Request.Context(), salonID)
 	if err != nil {
-		NotFound(c, "salon_not_found", "salon not found")
+		NotFound(c, "salon_not_found", "Salon nije pronađen")
 		return
 	}
 	uidVal, ok := c.Get("user_id")
 	if !ok {
-		Unauthorized(c, "missing_token", "authorization required")
+		Unauthorized(c, "missing_token", "Autorizacija je obavezna")
 		return
 	}
 	uid, ok := uidVal.(string)
 	if !ok || s.OwnerID.String() != uid {
-		Unauthorized(c, "forbidden", "not allowed")
+		Unauthorized(c, "forbidden", "Nemate pristup ovom resursu")
 		return
 	}
 	list, err := h.svc.ListBarbers(c.Request.Context(), salonID)
 	if err != nil {
-		ServerError(c, "list_failed", err.Error())
+		ServerError(c, "list_failed", "Greška pri učitavanju liste frizera")
 		return
 	}
 	c.JSON(http.StatusOK, list)
@@ -155,32 +155,32 @@ func (h *BarbersHandler) ListBarbers(c *gin.Context) {
 func (h *BarbersHandler) GetBarber(c *gin.Context) {
 	salonID, err := uuid.Parse(c.Param("salon_id"))
 	if err != nil {
-		BadRequest(c, "invalid_salon_id", "invalid salon_id")
+		BadRequest(c, "invalid_salon_id", "Nepravilan ID salona")
 		return
 	}
 	barberID, err := uuid.Parse(c.Param("barber_id"))
 	if err != nil {
-		BadRequest(c, "invalid_barber_id", "invalid barber_id")
+		BadRequest(c, "invalid_barber_id", "Nepravilan ID frizera")
 		return
 	}
 	s, err := h.salonsRepo.GetByID(c.Request.Context(), salonID)
 	if err != nil {
-		NotFound(c, "salon_not_found", "salon not found")
+		NotFound(c, "salon_not_found", "Salon nije pronađen")
 		return
 	}
 	uidVal, ok := c.Get("user_id")
 	if !ok {
-		Unauthorized(c, "missing_token", "authorization required")
+		Unauthorized(c, "missing_token", "Autorizacija je obavezna")
 		return
 	}
 	uid, ok := uidVal.(string)
 	if !ok || s.OwnerID.String() != uid {
-		Unauthorized(c, "forbidden", "not allowed")
+		Unauthorized(c, "forbidden", "Nemate pristup ovom resursu")
 		return
 	}
 	b, err := h.svc.GetBarber(c.Request.Context(), salonID, barberID)
 	if err != nil {
-		NotFound(c, "barber_not_found", "barber not found")
+		NotFound(c, "barber_not_found", "Frizer nije pronađen")
 		return
 	}
 	c.JSON(http.StatusOK, b)
@@ -195,32 +195,32 @@ type updateBarberRequest struct {
 func (h *BarbersHandler) UpdateBarber(c *gin.Context) {
 	salonID, err := uuid.Parse(c.Param("salon_id"))
 	if err != nil {
-		BadRequest(c, "invalid_salon_id", "invalid salon_id")
+		BadRequest(c, "invalid_salon_id", "Nepravilan ID salona")
 		return
 	}
 	barberID, err := uuid.Parse(c.Param("barber_id"))
 	if err != nil {
-		BadRequest(c, "invalid_barber_id", "invalid barber_id")
+		BadRequest(c, "invalid_barber_id", "Nepravilan ID frizera")
 		return
 	}
 	s, err := h.salonsRepo.GetByID(c.Request.Context(), salonID)
 	if err != nil {
-		NotFound(c, "salon_not_found", "salon not found")
+		NotFound(c, "salon_not_found", "Salon nije pronađen")
 		return
 	}
 	uidVal, ok := c.Get("user_id")
 	if !ok {
-		Unauthorized(c, "missing_token", "authorization required")
+		Unauthorized(c, "missing_token", "Autorizacija je obavezna")
 		return
 	}
 	uid, ok := uidVal.(string)
 	if !ok || s.OwnerID.String() != uid {
-		Unauthorized(c, "forbidden", "not allowed")
+		Unauthorized(c, "forbidden", "Nemate pristup ovom resursu")
 		return
 	}
 	var req updateBarberRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		BadRequest(c, "invalid_body", err.Error())
+		BadRequest(c, "invalid_body", "Nepravilno poslati podaci")
 		return
 	}
 	b, err := h.svc.UpdateBarber(c.Request.Context(), services.UpdateBarberInput{
@@ -231,7 +231,7 @@ func (h *BarbersHandler) UpdateBarber(c *gin.Context) {
 		SlotDurationMinutes: req.SlotDurationMinutes,
 	})
 	if err != nil {
-		ServerError(c, "update_failed", err.Error())
+		ServerError(c, "update_failed", "Greška pri ažuriranju podataka o frizeru")
 		return
 	}
 	c.JSON(http.StatusOK, b)
@@ -240,32 +240,32 @@ func (h *BarbersHandler) UpdateBarber(c *gin.Context) {
 func (h *BarbersHandler) DeactivateBarber(c *gin.Context) {
 	salonID, err := uuid.Parse(c.Param("salon_id"))
 	if err != nil {
-		BadRequest(c, "invalid_salon_id", "invalid salon_id")
+		BadRequest(c, "invalid_salon_id", "Nepravilan ID salona")
 		return
 	}
 	barberID, err := uuid.Parse(c.Param("barber_id"))
 	if err != nil {
-		BadRequest(c, "invalid_barber_id", "invalid barber_id")
+		BadRequest(c, "invalid_barber_id", "Nepravilan ID frizera")
 		return
 	}
 	s, err := h.salonsRepo.GetByID(c.Request.Context(), salonID)
 	if err != nil {
-		NotFound(c, "salon_not_found", "salon not found")
+		NotFound(c, "salon_not_found", "Salon nije pronađen")
 		return
 	}
 	uidVal, ok := c.Get("user_id")
 	if !ok {
-		Unauthorized(c, "missing_token", "authorization required")
+		Unauthorized(c, "missing_token", "Autorizacija je obavezna")
 		return
 	}
 	uid, ok := uidVal.(string)
 	if !ok || s.OwnerID.String() != uid {
-		Unauthorized(c, "forbidden", "not allowed")
+		Unauthorized(c, "forbidden", "Nemate pristup ovom resursu")
 		return
 	}
 	b, err := h.svc.DeactivateBarber(c.Request.Context(), salonID, barberID)
 	if err != nil {
-		ServerError(c, "deactivate_failed", err.Error())
+		ServerError(c, "deactivate_failed", "Greška pri deaktivaciji frizera")
 		return
 	}
 	c.JSON(http.StatusOK, b)

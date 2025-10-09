@@ -37,22 +37,22 @@ type publicCreateBody struct {
 func (h *AppointmentsHandler) PublicCreate(c *gin.Context) {
 	var body publicCreateBody
 	if err := c.ShouldBindJSON(&body); err != nil {
-		BadRequest(c, "invalid_body", err.Error())
+		BadRequest(c, "invalid_body", "Nepravilno poslati podaci")
 		return
 	}
 	salonID, err := uuid.Parse(body.SalonID)
 	if err != nil {
-		BadRequest(c, "invalid_salon_id", "invalid salon_id")
+		BadRequest(c, "invalid_salon_id", "Nepravilan ID salona")
 		return
 	}
 	barberID, err := uuid.Parse(body.BarberID)
 	if err != nil {
-		BadRequest(c, "invalid_barber_id", "invalid barber_id")
+		BadRequest(c, "invalid_barber_id", "Nepravilan ID frizera")
 		return
 	}
 	serviceID, err := uuid.Parse(body.BarberServiceID)
 	if err != nil {
-		BadRequest(c, "invalid_service_id", "invalid barber_service_id")
+		BadRequest(c, "invalid_service_id", "Nepravilan ID usluge")
 		return
 	}
 	appt, err := h.svc.PublicCreate(c.Request.Context(), services.PublicCreateAppointmentInput{
@@ -66,12 +66,12 @@ func (h *AppointmentsHandler) PublicCreate(c *gin.Context) {
 		Notes:           body.Notes,
 	})
 	if err != nil {
-		if pgErr, ok := err.(*pgconn.PgError); ok {
+		if _, ok := err.(*pgconn.PgError); ok {
 			// Map relevant integrity errors to 400
-			BadRequest(c, "booking_failed", pgErr.Message)
+			BadRequest(c, "booking_failed", "Greška pri zakazivanju termina")
 			return
 		}
-		ServerError(c, "booking_failed", err.Error())
+		ServerError(c, "booking_failed", "Greška pri zakazivanju termina")
 		return
 	}
 	c.JSON(http.StatusCreated, appt)
@@ -81,26 +81,26 @@ func (h *AppointmentsHandler) PublicCreate(c *gin.Context) {
 func (h *AppointmentsHandler) ListForBarber(c *gin.Context) {
 	uidVal, ok := c.Get("user_id")
 	if !ok {
-		Unauthorized(c, "missing_token", "authorization required")
+		Unauthorized(c, "missing_token", "Autorizacija je obavezna")
 		return
 	}
 	uidStr, ok := uidVal.(string)
 	if !ok {
-		Unauthorized(c, "invalid_token", "invalid token")
+		Unauthorized(c, "invalid_token", "Nevažeći token")
 		return
 	}
 	userID, err := uuid.Parse(uidStr)
 	if err != nil {
-		Unauthorized(c, "invalid_token", "invalid token")
+		Unauthorized(c, "invalid_token", "Nevažeći token")
 		return
 	}
 	b, err := h.barbersSvc.GetBarberByUser(c.Request.Context(), userID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			NotFound(c, "barber_not_found", "barber profile not found")
+			NotFound(c, "barber_not_found", "Profil frizera nije pronađen")
 			return
 		}
-		ServerError(c, "barber_lookup_failed", err.Error())
+		ServerError(c, "barber_lookup_failed", "Greška pri učitavanju profila frizera")
 		return
 	}
 
@@ -124,7 +124,7 @@ func (h *AppointmentsHandler) ListForBarber(c *gin.Context) {
 
 	items, err := h.svc.ListForBarber(c.Request.Context(), services.ListBarberAppointmentsInput{BarberID: b.ID, From: fromPtr, To: toPtr, Status: statusPtr})
 	if err != nil {
-		ServerError(c, "list_failed", err.Error())
+		ServerError(c, "list_failed", "Greška pri učitavanju termina")
 		return
 	}
 	c.JSON(http.StatusOK, items)
@@ -134,32 +134,32 @@ func (h *AppointmentsHandler) ListForBarber(c *gin.Context) {
 func (h *AppointmentsHandler) ConfirmByBarber(c *gin.Context) {
 	uidVal, ok := c.Get("user_id")
 	if !ok {
-		Unauthorized(c, "missing_token", "authorization required")
+		Unauthorized(c, "missing_token", "Autorizacija je obavezna")
 		return
 	}
 	uidStr, ok := uidVal.(string)
 	if !ok {
-		Unauthorized(c, "invalid_token", "invalid token")
+		Unauthorized(c, "invalid_token", "Nevažeći token")
 		return
 	}
 	userID, err := uuid.Parse(uidStr)
 	if err != nil {
-		Unauthorized(c, "invalid_token", "invalid token")
+		Unauthorized(c, "invalid_token", "Nevažeći token")
 		return
 	}
 	b, err := h.barbersSvc.GetBarberByUser(c.Request.Context(), userID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			NotFound(c, "barber_not_found", "barber profile not found")
+			NotFound(c, "barber_not_found", "Profil frizera nije pronađen")
 			return
 		}
-		ServerError(c, "barber_lookup_failed", err.Error())
+		ServerError(c, "barber_lookup_failed", "Greška pri učitavanju profila frizera")
 		return
 	}
 
 	apptID, err := uuid.Parse(c.Param("appointment_id"))
 	if err != nil {
-		BadRequest(c, "invalid_appointment_id", "invalid appointment_id")
+		BadRequest(c, "invalid_appointment_id", "Nepravilan ID termina")
 		return
 	}
 	c.Writer.Header().Set("X-Debug-Barber-ID", b.ID.String())
@@ -167,10 +167,10 @@ func (h *AppointmentsHandler) ConfirmByBarber(c *gin.Context) {
 	a, err := h.svc.ConfirmByBarber(c.Request.Context(), b.ID, apptID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			NotFound(c, "appointment_not_found", "appointment not found, not yours, or not pending")
+			NotFound(c, "appointment_not_found", "Termin nije pronađen ili nije na čekanju")
 			return
 		}
-		ServerError(c, "confirm_failed", err.Error())
+		ServerError(c, "confirm_failed", "Greška pri potvrđivanju termina")
 		return
 	}
 
@@ -217,41 +217,41 @@ func (h *AppointmentsHandler) ConfirmByBarber(c *gin.Context) {
 func (h *AppointmentsHandler) CancelByBarber(c *gin.Context) {
 	uidVal, ok := c.Get("user_id")
 	if !ok {
-		Unauthorized(c, "missing_token", "authorization required")
+		Unauthorized(c, "missing_token", "Autorizacija je obavezna")
 		return
 	}
 	uidStr, ok := uidVal.(string)
 	if !ok {
-		Unauthorized(c, "invalid_token", "invalid token")
+		Unauthorized(c, "invalid_token", "Nevažeći token")
 		return
 	}
 	userID, err := uuid.Parse(uidStr)
 	if err != nil {
-		Unauthorized(c, "invalid_token", "invalid token")
+		Unauthorized(c, "invalid_token", "Nevažeći token")
 		return
 	}
 	b, err := h.barbersSvc.GetBarberByUser(c.Request.Context(), userID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			NotFound(c, "barber_not_found", "barber profile not found")
+			NotFound(c, "barber_not_found", "Profil frizera nije pronađen")
 			return
 		}
-		ServerError(c, "barber_lookup_failed", err.Error())
+		ServerError(c, "barber_lookup_failed", "Greška pri učitavanju profila frizera")
 		return
 	}
 
 	apptID, err := uuid.Parse(c.Param("appointment_id"))
 	if err != nil {
-		BadRequest(c, "invalid_appointment_id", "invalid appointment_id")
+		BadRequest(c, "invalid_appointment_id", "Nepravilan ID termina")
 		return
 	}
 	a, err := h.svc.CancelByBarber(c.Request.Context(), b.ID, apptID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			NotFound(c, "appointment_not_found", "appointment not found or already canceled")
+			NotFound(c, "appointment_not_found", "Termin nije pronađen ili je već otkazan")
 			return
 		}
-		ServerError(c, "cancel_failed", err.Error())
+		ServerError(c, "cancel_failed", "Greška pri otkazivanju termina")
 		return
 	}
 
@@ -295,43 +295,43 @@ func (h *AppointmentsHandler) CancelByBarber(c *gin.Context) {
 func (h *AppointmentsHandler) DeleteByBarber(c *gin.Context) {
 	uidVal, ok := c.Get("user_id")
 	if !ok {
-		Unauthorized(c, "missing_token", "authorization required")
+		Unauthorized(c, "missing_token", "Autorizacija je obavezna")
 		return
 	}
 	uidStr, ok := uidVal.(string)
 	if !ok {
-		Unauthorized(c, "invalid_token", "invalid token")
+		Unauthorized(c, "invalid_token", "Nevažeći token")
 		return
 	}
 	userID, err := uuid.Parse(uidStr)
 	if err != nil {
-		Unauthorized(c, "invalid_token", "invalid token")
+		Unauthorized(c, "invalid_token", "Nevažeći token")
 		return
 	}
 	b, err := h.barbersSvc.GetBarberByUser(c.Request.Context(), userID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			NotFound(c, "barber_not_found", "barber profile not found")
+			NotFound(c, "barber_not_found", "Profil frizera nije pronađen")
 			return
 		}
-		ServerError(c, "barber_lookup_failed", err.Error())
+		ServerError(c, "barber_lookup_failed", "Greška pri učitavanju profila frizera")
 		return
 	}
 
 	apptID, err := uuid.Parse(c.Param("appointment_id"))
 	if err != nil {
-		BadRequest(c, "invalid_appointment_id", "invalid appointment_id")
+		BadRequest(c, "invalid_appointment_id", "Nepravilan ID termina")
 		return
 	}
 
 	err = h.svc.DeleteByBarber(c.Request.Context(), b.ID, apptID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			NotFound(c, "appointment_not_found", "appointment not found")
+			NotFound(c, "appointment_not_found", "Termin nije pronađen")
 			return
 		}
-		ServerError(c, "delete_failed", err.Error())
+		ServerError(c, "delete_failed", "Greška pri brisanju termina")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "appointment deleted"})
+	c.JSON(http.StatusOK, gin.H{"message": "Termin je uspešno obrisan"})
 }

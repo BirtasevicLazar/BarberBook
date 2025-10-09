@@ -33,10 +33,10 @@ type NavDefinition = {
 };
 
 const NAV_ITEMS: NavDefinition[] = [
+  { key: 'appointments', label: 'Termini', asset: appointmentIcon },
   { key: 'services', label: 'Usluge', asset: serviceIcon },
   { key: 'working-hours', label: 'Raspored', asset: workingHoursIcon },
   { key: 'time-off', label: 'Neradni dani', asset: daysOffIcon },
-  { key: 'appointments', label: 'Termini', asset: appointmentIcon },
 ];
 
 function App() {
@@ -64,7 +64,7 @@ function Root() {
 }
 
 function Dashboard() {
-  const [activeTab, setActiveTab] = useState<TabKey>('services');
+  const [activeTab, setActiveTab] = useState<TabKey>('appointments');
   const { logout } = useAuth();
 
   return (

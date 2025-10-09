@@ -34,7 +34,7 @@ type createSalonRequest struct {
 func (h *SalonsHandler) CreateSalon(c *gin.Context) {
 	var req createSalonRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Nepravilno poslati podaci"})
 		return
 	}
 
@@ -44,10 +44,10 @@ func (h *SalonsHandler) CreateSalon(c *gin.Context) {
 	})
 	if err != nil {
 		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
-			c.JSON(http.StatusConflict, gin.H{"error": "email already exists"})
+			c.JSON(http.StatusConflict, gin.H{"error": "Korisnik sa ovim emailom već postoji"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Greška pri kreiranju salona"})
 		return
 	}
 

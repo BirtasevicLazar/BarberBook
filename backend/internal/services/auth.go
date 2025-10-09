@@ -21,10 +21,10 @@ func NewAuthService(users *repositories.UsersRepository) *AuthService {
 func (s *AuthService) Login(ctx context.Context, email, password string) (string, string, error) {
 	u, err := s.users.GetByEmail(ctx, email)
 	if err != nil {
-		return "", "", errors.New("invalid credentials")
+		return "", "", errors.New("Pogrešan email ili lozinka")
 	}
 	if bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)) != nil {
-		return "", "", errors.New("invalid credentials")
+		return "", "", errors.New("Pogrešan email ili lozinka")
 	}
 	return u.ID.String(), u.Role, nil
 }
