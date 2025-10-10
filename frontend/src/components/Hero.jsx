@@ -86,7 +86,7 @@ export default function Hero() {
           <div className="w-6 h-10 border-2 border-white/60 rounded-full flex justify-center p-2 group-hover:border-white/80 transition-colors">
             <div className="w-1 h-3 bg-white/80 rounded-full animate-pulse group-hover:bg-white transition-colors"></div>
           </div>
-          <div className="mt-2 text-white/60 text-xs font-light group-hover:text-white/80 transition-colors">Scroll</div>
+          <div className="mt-2 text-white/60 text-xs font-light group-hover:text-white/80 transition-colors">Skroluj</div>
         </button>
       </div>
     </section>
