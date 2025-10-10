@@ -1,7 +1,7 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function buildUrl(path) {
-  if (!BASE_URL) throw new Error('VITE_API_BASE_URL is not set');
+  if (!BASE_URL) throw new Error('VITE_API_BASE_URL nije postavljen u .env fajlu');
   const p = path.startsWith('/') ? path : `/${path}`;
   return `${BASE_URL}${p}`;
 }
