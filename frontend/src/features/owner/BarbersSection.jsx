@@ -240,14 +240,21 @@ export default function BarbersSection({ salonId, onCountChange }) {
             <Input label="Telefon" value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="+381 xx xxx xxxx" />
             <Input label="Prikazno ime *" required value={form.display_name} onChange={(e) => update('display_name', e.target.value)} placeholder="Marko" />
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+              <label className="block text-xs sm:text-sm font-light text-gray-700 mb-2 sm:mb-3">
                 Trajanje slota (min) *
               </label>
               <select
                 required
                 value={form.slot_duration_minutes}
                 onChange={(e) => update('slot_duration_minutes', e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm text-zinc-900 shadow-sm transition-colors focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3 py-3 sm:px-4 sm:py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 bg-white font-light transition-all duration-200 text-sm sm:text-base appearance-none cursor-pointer"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23374151'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                  backgroundPosition: 'right 0.75rem center',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: '1.25rem',
+                  paddingRight: '2.5rem'
+                }}
               >
                 <option value="10">10 minuta</option>
                 <option value="15">15 minuta</option>
@@ -285,14 +292,21 @@ export default function BarbersSection({ salonId, onCountChange }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <Input label="Prikazno ime *" required value={editForm.display_name} onChange={(e) => setEditForm((prev) => ({ ...prev, display_name: e.target.value }))} placeholder="Marko" />
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+              <label className="block text-xs sm:text-sm font-light text-gray-700 mb-2 sm:mb-3">
                 Trajanje slota (min) *
               </label>
               <select
                 required
                 value={editForm.slot_duration_minutes}
                 onChange={(e) => setEditForm((prev) => ({ ...prev, slot_duration_minutes: e.target.value }))}
-                className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm text-zinc-900 shadow-sm transition-colors focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3 py-3 sm:px-4 sm:py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 bg-white font-light transition-all duration-200 text-sm sm:text-base appearance-none cursor-pointer"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23374151'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                  backgroundPosition: 'right 0.75rem center',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: '1.25rem',
+                  paddingRight: '2.5rem'
+                }}
               >
                 <option value="10">10 minuta</option>
                 <option value="15">15 minuta</option>
