@@ -17,7 +17,7 @@ import { ApiError } from '../api/client';
 import { useAuth } from '../contexts/AuthContext';
 import { palette, theme } from '../styles/theme';
 
-const barberIcon = require('../assets/icons/BarberIcon.png');
+const barberIcon = require('../assets/icons/BarberBookLogo.png');
 
 export default function LoginScreen() {
   const { login, isLoading: authLoading, token } = useAuth();
